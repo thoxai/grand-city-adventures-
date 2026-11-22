@@ -301,6 +301,16 @@ static func generate_pedestrians(count: int, seed_value: int) -> Dictionary:
 		var block := Vector2i(rng.randi_range(0, 3), rng.randi_range(0, 3))
 		var walk := {"type": "walk", "loop_block": block, "inset": [1.6, 2.0, 2.4][rng.randi() % 3],
 			"reverse": rng.randf() < 0.5, "start": rng.randi_range(0, 3)}
+		if i % 3 == 1:
+			# Jeder dritte Passant überquert auf seinem Rundweg zwei Straßen (Zebrastreifen)
+			var pair: Array
+			if rng.randf() < 0.5:
+				var a := Vector2i(rng.randi_range(0, 3), rng.randi_range(0, 2))
+				pair = [a, a + Vector2i(0, 1)]
+			else:
+				var a2 := Vector2i(rng.randi_range(0, 2), rng.randi_range(0, 3))
+				pair = [a2, a2 + Vector2i(1, 0)]
+			walk = {"type": "walk", "pair": pair, "start": rng.randi_range(0, 7)}
 		var schedule: Array
 		if rng.randf() < 0.15:
 			# Nachtschwärmer
@@ -343,7 +353,51 @@ static func activity_for_hour(schedule: Array, hour: float) -> Dictionary:
 	return current
 
 
+## Rundweg um zwei benachbarte Blocks: überquert die Straße dazwischen zweimal
+## an den Zebrastreifen (9 m vor der Kreuzungsmitte). Liefert [Weg, Wartepunkte];
+## Wartepunkte: Index -> [Kreuzung, Achse der Autos, die Rot haben müssen].
+static func pair_route(entry: Dictionary) -> Array:
+	var rc: Array = CityLayout.ROAD_CENTERS
+	var a: Vector2i = entry["pair"][0]
+	var b: Vector2i = entry["pair"][1]
+	var k := 9.0
+	var path: Array
+	var waits := {}
+	if b.y == a.y + 1:
+		var xl: float = rc[a.x] + k
+		var xr: float = rc[a.x + 1] - k
+		var mid: float = rc[a.y + 1]
+		var top: float = rc[a.y] + k
+		var bottom: float = rc[a.y + 2] - k
+		path = [Vector3(xl, 0, top), Vector3(xr, 0, top), Vector3(xr, 0, mid - k), Vector3(xr, 0, mid + k),
+			Vector3(xr, 0, bottom), Vector3(xl, 0, bottom), Vector3(xl, 0, mid + k), Vector3(xl, 0, mid - k)]
+		waits = {2: [Vector2i(a.x + 1, a.y + 1), 0], 6: [Vector2i(a.x, a.y + 1), 0]}
+	else:
+		var zt: float = rc[a.y] + k
+		var zb: float = rc[a.y + 1] - k
+		var mid2: float = rc[a.x + 1]
+		var left: float = rc[a.x] + k
+		var right: float = rc[a.x + 2] - k
+		path = [Vector3(left, 0, zt), Vector3(mid2 - k, 0, zt), Vector3(mid2 + k, 0, zt), Vector3(right, 0, zt),
+			Vector3(right, 0, zb), Vector3(mid2 + k, 0, zb), Vector3(mid2 - k, 0, zb), Vector3(left, 0, zb)]
+		waits = {1: [Vector2i(a.x + 1, a.y), 1], 5: [Vector2i(a.x + 1, a.y + 1), 1]}
+	# Startpunkt rotieren (Wartepunkte mitverschieben)
+	var n := path.size()
+	var s0 := int(entry.get("start", 0)) % n
+	var rotated: Array = path.slice(s0) + path.slice(0, s0)
+	var rw := {}
+	for i in waits.keys():
+		rw[posmod(int(i) - s0, n)] = waits[i]
+	return [rotated, rw]
+
+
+static func waits_for(entry: Dictionary) -> Dictionary:
+	return pair_route(entry)[1] if entry.has("pair") else {}
+
+
 static func path_for(entry: Dictionary) -> Array:
+	if entry.has("pair"):
+		return pair_route(entry)[0]
 	if entry.has("path"):
 		return entry["path"]
 	if entry.has("loop_block"):

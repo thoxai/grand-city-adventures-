@@ -12,8 +12,10 @@ Fahrzeug-Tuning und Erkundung.
 | ![Start](docs/screenshots/02_start_alex_tag.png) | ![Rätsel](docs/screenshots/06_raetsel_sicherungen.png) | ![Tuning](docs/screenshots/08_tuning.png) |
 | **Straßenverkehr** | **Im CityFlitzer unterwegs** | **Verkehr bei Nacht** |
 | ![Verkehr](docs/screenshots/11_verkehr_kreuzung.png) | ![Flitzer](docs/screenshots/12_flitzer_im_verkehr.png) | ![Nacht](docs/screenshots/13_verkehr_nacht.png) |
-| **Ampelkreuzung** | **Hupen – Passanten reagieren** | |
-| ![Ampel](docs/screenshots/14_ampel_passanten.png) | ![Hupe](docs/screenshots/15_hupe_reaktion.png) | |
+| **Ampelkreuzung** | **Hupen – Passanten reagieren** | **Taxi-Job: Fahrgast abholen** |
+| ![Ampel](docs/screenshots/14_ampel_passanten.png) | ![Hupe](docs/screenshots/15_hupe_reaktion.png) | ![Taxi](docs/screenshots/16_taxi_fahrgast.png) |
+| **Passanten am Zebrastreifen** | | |
+| ![Zebrastreifen](docs/screenshots/17_zebrastreifen.png) | | |
 
 Die Screenshots werden automatisch mit `tools/run_screenshots.sh` gerendert.
 
@@ -57,9 +59,25 @@ Die Screenshots werden automatisch mit `tools/run_screenshots.sh` gerendert.
 - **Hupe** (Taste `H`, Gamepad B, Touch-Knopf „Hupe“ im Auto): Passanten in der Nähe kommentieren das mit einer
   Sprechblase („Hey!“, „Ich geh ja schon!“) und treten zur Seite, wenn sie vor dem Auto stehen. Blockierst du
   ein KI-Auto länger, hupt es zurück. Der Hupton wird zur Laufzeit erzeugt (kein Audio-Asset).
+- **Zebrastreifen:** Jeder dritte Passant überquert auf seinem Weg Straßen. Er wartet am Bordstein, bis die Autos
+  Rot haben, und geht dann über den Zebrastreifen. Der Verkehr hält für Fußgänger auf der Fahrbahn; die KI hält
+  dafür jetzt an der aufgemalten Haltelinie, nicht mehr auf dem Zebrastreifen.
 - **30 Passanten** mit zufälligem (aber reproduzierbarem) Aussehen, Namen, Gehtempo und Tagesrhythmus laufen um
   die Häuserblocks; tagsüber sind die meisten unterwegs, nachts nur ein paar Nachtschwärmer. Alle sind
   ansprechbar und geben Tipps.
+
+## Nebenjobs
+
+Zwischen den Story-Missionen kannst du mit Jobs Geld für Tuning verdienen (während einer Story-Mission
+pausieren die Jobs – die Geschichte hat Vorrang):
+
+- **Taxi-Job:** Steig in ein gelbes CityFlitzer-Taxi – der Job startet automatisch. Ein Fahrgast winkt an einer
+  grünen Markierung am Straßenrand. Neben ihm anhalten, dann zum Ziel fahren und dort anhalten.
+  Lohn: 30 € + Strecke; **Trinkgeld** 25 € bei Ankunft in der Zeit, minus 8 € je Aufprall. Danach wartet der
+  nächste Fahrgast. Aussteigen beendet den Job.
+- **Lieferjob:** Mit einem beliebigen Auto zum **Paket-Depot** im Alten Hafen fahren, anhalten und „Aktion“
+  drücken. Drei Pakete der Reihe nach ausliefern (je 60 €), Restzeit bringt 2 € pro Sekunde Bonus.
+- Erledigte Jobs und der Verdienst werden im Spielstand gespeichert.
 
 ## Schnellstart
 
@@ -89,13 +107,15 @@ godot --path .
 
 ## Tests
 
-88 automatisierte Tests (Unit + Integration), ohne externe Abhängigkeiten:
+97 automatisierte Tests (Unit + Integration), ohne externe Abhängigkeiten:
 
 ```bash
 GODOT=/pfad/zu/godot tools/run_tests.sh
 ```
 
-Einzelne Suite: `tools/run_tests.sh --suite=test_puzzles`. Der GitHub-Workflow `.github/workflows/tests.yml` führt sie bei jedem Push aus.
+Einzelne Suite: `tools/run_tests.sh --suite=test_puzzles`. Der Runner erkennt GDScript-Laufzeitfehler innerhalb
+eines Tests (Godot 4.5 `Logger`) und wertet sie als Fehlschlag; ein Watchdog bricht hängende Tests nach 3 Minuten
+Spielzeit ab. Der GitHub-Workflow `.github/workflows/tests.yml` führt sie bei jedem Push aus.
 
 Abgedeckt sind u. a.:
 
@@ -105,6 +125,9 @@ Abgedeckt sind u. a.:
 - **Missionen**: Schritt-für-Schritt-Logik, Zeitlimit mit Wiederholung, komplette Story mit Belohnungssumme.
 - **Hauptszene**: Menü, Figurwahl, Laufen, Touch-Joystick und Multi-Touch-Knöpfe, Dialoge, Ein-/Aussteigen, **kompletter Story-Durchlauf** inkl. Rätsel-UI, Tuning-Kauf, Sammeln, Speichern/Laden der Welt, Pause, NPC-Tagesablauf, Ausweichen.
 - **KI-Fahrer**: Ein Autopilot fährt „Die Hafenrunde“ mit echter Physik durch die generierte Stadt – trotz Verkehr ca. 43 s bei 80 s Zeitlimit.
+- **Nebenjobs & Zebrastreifen**: komplette Taxifahrt mit Fahrpreis und Trinkgeld, Job-Ende beim Aussteigen,
+  Lieferjob mit drei Paketen und Teilauszahlung bei Zeitablauf, keine Jobs während Story-Missionen, Speichern;
+  Passanten queren **nur, wenn die Autos Rot haben**, und kein Auto kommt einem Fußgänger auf der Fahrbahn nahe.
 - **Ampeln & Stadtleben**: Phasen schließen sich gegenseitig aus; 40 s Simulation: KI wartet an Rot, **0 Rotlichtverstöße**;
   Busse fahren, sind aber nicht nutzbar; Hupe löst Reaktionen aus; KI hupt, wenn der Spieler blockiert; Rotlicht-Hinweis;
   Passanten deterministisch, mittags unterwegs, nachts zu Hause; alle Wege frei von Gebäuden, Bäumen und Ampelmasten.
@@ -188,7 +211,8 @@ Paketname `org.example.grandcityadventures` ist ein Platzhalter und muss vor ein
 - **Verkehrsregeln vereinfacht**: Ampeln ja, aber keine Vorfahrt beim Linksabbiegen und keine grüne Welle.
   KI-Autos kollidieren untereinander bewusst nicht; blockieren sie sich mitten in einer Kreuzung länger als 4 s,
   fahren sie durcheinander hindurch. Lange Busse schneiden beim Abbiegen die Ecken.
-- **Passanten** sind vereinfacht: ab 18 m Entfernung ohne Gliederbewegung (Performance), sie überqueren keine Straßen.
+- **Passanten** sind vereinfacht: ab 18 m Entfernung ohne Gliederbewegung (Performance); sie queren nur an
+  Zebrastreifen zwischen zwei benachbarten Blocks. Taxi-Fahrgäste und Pakete haben keine eigenen Animationen.
   NPCs laufen feste Wege (keine NavMesh-Navigation).
 - **Audio**: nur ein prozedural erzeugter Motorsound; keine Musik, keine Soundeffekte.
 - **Speichern mitten in einer Mission** sichert nur Fortschritt außerhalb der Mission; nach dem Laden startet die

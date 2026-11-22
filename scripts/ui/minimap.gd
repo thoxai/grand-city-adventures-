@@ -80,7 +80,12 @@ func _draw() -> void:
 			var col := Color(0.35, 0.7, 1.0) if GameState.is_car_unlocked(car.car_id) else Color(0.6, 0.6, 0.65)
 			draw_rect(Rect2(cp - Vector2(4, 4), Vector2(8, 8)), col)
 	# Missionsziel
-	if missions:
+	var jobs = world.get("jobs")
+	if jobs and jobs.is_active() and not missions.is_active():
+		var jt = jobs.target_position()
+		if jt != null:
+			_draw_target(_w2m(Vector2(jt.x, jt.z), center, s), Color(0.3, 0.95, 0.5))
+	elif missions:
 		var t = missions.target_position()
 		if t != null:
 			_draw_target(_w2m(Vector2(t.x, t.z), center, s), Color(1.0, 0.85, 0.2))

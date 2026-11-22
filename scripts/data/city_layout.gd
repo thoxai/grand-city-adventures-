@@ -54,6 +54,7 @@ const POIS := {
 	"kiosk": Vector3(-80, 0, 100),
 	"cafe": Vector3(100, 0, -100),
 	"harbor_pier": Vector3(135, 0, 135),
+	"depot": Vector3(124, 0, 99),
 }
 
 const RACE_CHECKPOINTS := [

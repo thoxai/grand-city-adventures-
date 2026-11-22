@@ -23,6 +23,7 @@ Main (main.gd)
 ├── DayNight (DayNightCycle)  Sonne/Mond, WorldEnvironment, Pool aus 6 OmniLights
 ├── CameraRig                 SpringArm3D → Camera3D
 ├── MissionManager            + MissionMarkers (Lichtsäulen, Ringe)
+├── Jobs (JobManager)         Taxi-/Lieferjobs, Fahrgast-Figur, Paket-Depot, eigene Markierung
 ├── HUD (CanvasLayer)         UIRoot → HUD-Ebene, Touch, Minikarte, Dialog, Menüs, Panels
 ├── Player                    CharacterBody3D + HumanoidModel
 ├── car_compact, car_sport    CharacterBody3D (Car) + CarModel + EngineAudio
@@ -46,6 +47,7 @@ Main (main.gd)
 | `Player`, `CameraRig`, `HumanoidModel` | Laufen/Sprinten/Springen relativ zur Kamera, Gelenk-Animation |
 | `Car`, `CarModel`, `EngineAudio` | Arcade-Fahrphysik, Fahrzeugmodell, prozeduraler Motorsound |
 | `TrafficManager` | Verkehrs-KI: Kreuzungsgraph, Spurpunkte, Bézier-Abbiegen, Abstandsregel, Neueinsetzen, Übernahme durch Spieler, Dichte je Qualitätsstufe |
+| `JobManager` | Nebenjobs: Ziele am Straßenrand, Abhol-/Abgabe-Logik (Anhalten), Lohn/Trinkgeld, Pausieren während Story-Missionen |
 | `TrafficLights` | Ampelphasen je Kreuzung (rein zeitbasiert, statisch testbar), Darstellung als MultiMeshes |
 | `Horn` | Erzeugt den Hupton einmalig als AudioStreamWAV (läuft auch im Web) |
 | `Npc` | Tagesablauf (idle/walk/home), Dialog-Zustand, Ausweichen vor Autos, Simulation nur in Kameranähe |
@@ -83,6 +85,11 @@ Main (main.gd)
 `NpcData.generate_pedestrians()` erzeugt per Seed 30 Passanten: Aussehen aus Farbpaletten, Größe und Statur,
 Gehtempo, Rundweg um einen zufälligen Block (Abstand 1,6–2,4 m vom Bordstein, Richtung und Startecke variieren)
 und Tagesrhythmus. `NpcData.all_npcs()` liefert Story-Figuren und Passanten gemeinsam.
+
+Jeder dritte Passant läuft stattdessen um zwei benachbarte Blocks (`NpcData.pair_route`) und quert dabei die
+Straße dazwischen zweimal – genau auf den Zebrastreifen 9 m vor der Kreuzungsmitte. An den beiden Bordstein-
+Punkten wartet er, bis die Autos dieser Straße Rot haben und die Querrichtung gerade Grün bekommen hat (dann
+reicht die Zeit sicher). Auf der Fahrbahn zählt er für die Verkehrs-KI als Hindernis.
 
 ## Gewaltfreies Design
 

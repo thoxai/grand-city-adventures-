@@ -110,6 +110,50 @@ func _ready() -> void:
 	main.honk()
 	await _wait(0.4)
 	await _shot("15_hupe_reaktion")
+	# Taxi-Job: Fahrgast winkt am Straßenrand (Story-Mission vorher beenden, sonst pausieren Jobs)
+	main.exit_car(true)
+	main.missions.abort()
+	await _wait(0.3)
+	var taxi: Car = null
+	for c in main.traffic.cars:
+		if c.car_id == "city_taxi":
+			taxi = c
+			break
+	main.enter_car(taxi)
+	await _wait(0.5)
+	var fare_pos: Vector3 = main.jobs.target
+	var back := (fare_pos - Vector3(0, 0, 0))
+	taxi.reset_to(fare_pos + Vector3(14, 0, 0) if CityLayout.is_on_road(fare_pos + Vector3(14, 0, -4)) else fare_pos + Vector3(0, 0, 14), 0.0)
+	taxi.look_at(Vector3(fare_pos.x, taxi.global_position.y, fare_pos.z), Vector3.UP)
+	main.camera_rig.set_target(taxi, true)
+	await _wait(1.5)
+	await _shot("16_taxi_fahrgast")
+	main.exit_car(true)
+	# Passanten am Zebrastreifen
+	GameState.time_of_day = 12.0
+	for npc in main.npcs.values():
+		npc.snap_to_schedule(12.0)
+	var shown := 0
+	for npc in main.npcs.values():
+		var e := NpcData.activity_for_hour(npc.data["schedule"], 12.0)
+		if e.has("pair") and shown < 4:
+			var path: Array = NpcData.pair_route({"pair": [Vector2i(1, 1), Vector2i(1, 2)], "start": 0})[0]
+			npc._path = path
+			npc._waits = NpcData.pair_route({"pair": [Vector2i(1, 1), Vector2i(1, 2)], "start": 0})[1]
+			npc._path_index = 2 if shown % 2 == 0 else 6
+			npc.global_position = path[npc._path_index] + Vector3(shown * 0.7, 0, 0)
+			shown += 1
+	# Ampel an Kreuzung (2,2) auf "Fußgänger frei" stellen (Autos Ost-West rot)
+	for i in 300:
+		if main.traffic_lights.state(Vector2i(2, 2), 0) == "red" and main.traffic_lights.state(Vector2i(2, 2), 1) == "green":
+			break
+		main.traffic_lights.time += 0.1
+	main.player.global_position = Vector3(-16, 0, -13)
+	main.camera_rig.global_position = main.player.global_position
+	main.camera_rig.yaw = -2.6
+	main.camera_rig.pitch = deg_to_rad(-16.0)
+	await _wait(3.0)
+	await _shot("17_zebrastreifen")
 	get_tree().quit()
 
 

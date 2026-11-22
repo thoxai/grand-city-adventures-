@@ -38,6 +38,8 @@ var playtime: float = 0.0
 var day: int = 1
 var quality: String = "medium"
 var show_fps: bool = false
+var jobs_done: int = 0
+var job_earnings: int = 0
 
 
 func reset_new_game(char_id: String) -> void:
@@ -50,6 +52,8 @@ func reset_new_game(char_id: String) -> void:
 	time_of_day = START_HOUR
 	playtime = 0.0
 	day = 1
+	jobs_done = 0
+	job_earnings = 0
 	money_changed.emit(money)
 	state_changed.emit()
 
@@ -124,6 +128,12 @@ func collect(item_id: String) -> bool:
 	return true
 
 
+## Nebenjob-Statistik (Geld wird separat über add_money gutgeschrieben).
+func record_job(earned: int) -> void:
+	jobs_done += 1
+	job_earnings += earned
+
+
 func advance_time(delta: float) -> void:
 	playtime += delta
 	var t := time_of_day + delta * time_scale / 60.0
@@ -154,6 +164,8 @@ func to_dict() -> Dictionary:
 		"playtime": playtime,
 		"day": day,
 		"quality": quality,
+		"jobs_done": jobs_done,
+		"job_earnings": job_earnings,
 	}
 
 
@@ -179,5 +191,7 @@ func from_dict(d: Dictionary) -> void:
 	playtime = float(d.get("playtime", 0.0))
 	day = int(d.get("day", 1))
 	quality = str(d.get("quality", "medium"))
+	jobs_done = int(d.get("jobs_done", 0))
+	job_earnings = int(d.get("job_earnings", 0))
 	money_changed.emit(money)
 	state_changed.emit()

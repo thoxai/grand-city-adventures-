@@ -17,7 +17,11 @@ const SUITES := [
 	"res://tests/integration/test_race_autopilot.gd",
 	"res://tests/integration/test_traffic.gd",
 	"res://tests/integration/test_city_life.gd",
+	"res://tests/integration/test_jobs.gd",
 ]
+
+
+const MAX_TEST_FRAMES := 60 * 180
 
 
 func _ready() -> void:
@@ -29,6 +33,10 @@ func _ready() -> void:
 	var failed := 0
 	var failed_names: Array = []
 	var t0 := Time.get_ticks_msec()
+	var error_logger = null
+	if ClassDB.class_exists("Logger"):
+		error_logger = load("res://tests/script_error_logger.gd").new()
+		OS.add_logger(error_logger)
 	for path in SUITES:
 		if only != "" and not path.contains(only):
 			continue
@@ -47,9 +55,26 @@ func _ready() -> void:
 			if not mname.begins_with("test_"):
 				continue
 			suite.failures = []
+			if error_logger:
+				error_logger.take()
 			await suite.before_each()
-			await suite.call(mname)
+			# Watchdog: bricht ein Test durch einen Laufzeitfehler ab, kehrt seine
+			# Coroutine nie zurück. Dann nach MAX_TEST_FRAMES als Fehler werten.
+			var state := {"done": false}
+			var run := func() -> void:
+				await suite.call(mname)
+				state["done"] = true
+			run.call()
+			var waited := 0
+			while not state["done"] and waited < MAX_TEST_FRAMES:
+				await get_tree().process_frame
+				waited += 1
+			if not state["done"]:
+				suite.failures.append("Zeitüberschreitung: Test nach %d Frames abgebrochen" % MAX_TEST_FRAMES)
 			await suite.after_each()
+			if error_logger:
+				for e in error_logger.take():
+					suite.failures.append("Skriptfehler: %s" % e)
 			if suite.failures.is_empty():
 				passed += 1
 				print("  ✔ %s" % mname)

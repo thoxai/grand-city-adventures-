@@ -25,6 +25,11 @@ var _dodge_timer := 0.0
 var _dodge_dir := Vector3.ZERO
 var _shape: CollisionShape3D
 var _bubble: Label3D
+## Ampeln (für Straßenüberquerungen) und Zustand
+var lights: TrafficLights
+var on_road := false
+var _waits: Dictionary = {}
+var _crossing := false
 var _bubble_t := 0.0
 
 
@@ -152,6 +157,8 @@ func _apply_activity(act: Dictionary, teleport: bool) -> void:
 	visible = not is_home
 	_shape.disabled = is_home
 	_path = NpcData.path_for(act)
+	_waits = NpcData.waits_for(act)
+	_crossing = false
 	if teleport and not _path.is_empty():
 		_path_index = 0
 		global_position = _path[0]
@@ -177,8 +184,9 @@ func _physics_process(delta: float) -> void:
 	var cam_dist := 0.0
 	if camera_provider.is_valid():
 		cam_dist = global_position.distance_to(camera_provider.call())
-	if cam_dist > ACTIVE_RANGE:
-		return  # weit weg: keine Simulation (Performance)
+	on_road = CityLayout.is_on_road(global_position)
+	if cam_dist > ACTIVE_RANGE and not on_road:
+		return  # weit weg: keine Simulation (Performance) – außer mitten auf der Straße
 
 	var move := Vector3.ZERO
 	_check_cars()
@@ -192,9 +200,15 @@ func _physics_process(delta: float) -> void:
 		var to := target - global_position
 		to.y = 0.0
 		if to.length() < ARRIVE_DIST:
-			_path_index = (_path_index + 1) % _path.size()
+			if _waits.has(_path_index) and not crossing_allowed(_waits[_path_index]):
+				# Am Bordstein warten, bis die Autos Rot haben
+				_face(_path[(_path_index + 1) % _path.size()], delta)
+				_crossing = false
+			else:
+				_crossing = _waits.has(_path_index)
+				_path_index = (_path_index + 1) % _path.size()
 		else:
-			move = to.normalized() * walk_speed
+			move = to.normalized() * walk_speed * (1.35 if _crossing else 1.0)
 	elif not _path.is_empty():
 		var home_pt: Vector3 = _path[0]
 		var to2 := home_pt - global_position
@@ -210,6 +224,23 @@ func _physics_process(delta: float) -> void:
 		model.rotation.y = lerp_angle(model.rotation.y, atan2(-move.x, -move.z), minf(1.0, delta * 8.0))
 	if model and cam_dist < HumanoidModel.DETAIL_RANGE + 5.0:
 		model.animate(Vector2(velocity.x, velocity.z).length(), delta, _dodge_timer > 0.3)
+
+
+## Überqueren erlaubt, wenn die Autos dieser Straße Rot haben und die Querrichtung
+## gerade Grün hat (dann bleibt ein volles Zeitfenster).
+func crossing_allowed(w: Array) -> bool:
+	if lights == null:
+		return true
+	var node: Vector2i = w[0]
+	var axis: int = w[1]
+	return lights.state(node, axis) == "red" and lights.state(node, 1 - axis) == "green"
+
+
+func is_waiting_at_curb() -> bool:
+	if _path.is_empty() or not _waits.has(_path_index):
+		return false
+	var p: Vector3 = _path[_path_index]
+	return Vector2(p.x - global_position.x, p.z - global_position.z).length() < ARRIVE_DIST + 0.2
 
 
 func _face(p: Vector3, delta: float) -> void:

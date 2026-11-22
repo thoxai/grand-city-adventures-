@@ -15,6 +15,20 @@ Jeder Sprint endet mit einem lauffähigen Stand; Tests wachsen mit.
 
 | **8 – Stadtleben** | Mehr Fahrzeuge, Ampeln, Hupe, mehr NPCs | `TrafficLights` (21 Kreuzungen), KI hält an Rot, Rotlicht-Hinweis, `Horn` (prozeduraler Hupton) mit Reaktionen von Passanten und KI, Taxis und Stadtbusse, 30 generierte Passanten, Sprechblasen, Figuren-LOD in drei Stufen, 8 neue Tests |
 
+| **9 – Nebenjobs & Zebrastreifen** | Wiederholbare Geldquelle, lebendigere Straßen | `JobManager` (Taxi-Job mit Fahrpreis/Trinkgeld, Lieferjob am Paket-Depot), Job-Ziele in HUD und Minikarte, Job-Statistik im Spielstand, Passanten-Routen über Zebrastreifen mit Ampelregel, Verkehr hält für Fußgänger, Haltelinie vor dem Zebrastreifen, Skriptfehler-Erkennung im Test-Runner, 9 neue Tests |
+
+## Erkenntnisse aus Sprint 9
+
+- Der Test-Runner hatte eine echte Lücke: Ein GDScript-Laufzeitfehler bricht die Testfunktion ab, sie gilt aber
+  als bestanden. Jetzt zählt ein `Logger` (Godot 4.5) Skriptfehler pro Test; die Komplett-Suite enthielt zum
+  Glück keine versteckten Fehler.
+- Die gelegentlichen „Hänger“ ließen sich nur reproduzieren, wenn Godot unter `timeout … | grep` lief – nie bei
+  direktem Aufruf (z. B. `tools/run_tests.sh`, 10+ Läufe). Sie liegen damit sehr wahrscheinlich an der
+  Prozess-/Pipe-Konstellation der Entwicklungsumgebung, nicht am Spiel. Zur Sicherheit gibt es einen Watchdog.
+- KI-Autos standen mit der Front auf dem Zebrastreifen; Haltepunkt von 10 auf 13 m verlegt.
+- Mehrere Test-Fehlschläge lagen an Testannahmen (Kamera folgt weich, NPC-Simulationsradius) – im Spiel war
+  das Verhalten korrekt.
+
 ## Erkenntnisse aus Sprint 8
 
 - Abstandsregel überarbeitet: Erkennungsbereich war bei Schritttempo kürzer als der Halteabstand – Autos krochen
@@ -47,6 +61,6 @@ Jeder Sprint endet mit einem lauffähigen Stand; Tests wachsen mit.
 1. Echte Figuren-/Fahrzeugmodelle (GLB, Skinning, Animationen) im bestehenden Interface.
 2. Messung auf dem Referenzgerät, ggf. Feintuning der Qualitätsstufen.
 3. Musik/Soundeffekte, haptisches Feedback.
-4. Vorfahrt beim Linksabbiegen, grüne Welle, Fußgängerampeln, Bushaltestellen, Verkehrsgeräusche.
+4. Vorfahrt beim Linksabbiegen, grüne Welle, Bushaltestellen mit Fahrgästen, Verkehrsgeräusche, weitere Job-Arten.
 5. Speichern von Missions-Zwischenständen.
 6. Web- und iOS-Build.

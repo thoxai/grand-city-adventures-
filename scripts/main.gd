@@ -23,6 +23,7 @@ var npcs: Dictionary = {}
 var current_car: Car = null
 var traffic: TrafficManager
 var traffic_lights: TrafficLights
+var jobs: JobManager
 var horn_count := 0
 var game_running := false
 var input_locked := false
@@ -55,13 +56,17 @@ func _ready() -> void:
 	hud.minimap.city = city
 	hud.minimap.world = self
 	hud.minimap.missions = missions
-	missions.objective_changed.connect(hud.set_objective)
+	missions.objective_changed.connect(_on_objective)
 	missions.timer_changed.connect(hud.set_timer)
 	missions.mission_started.connect(_on_mission_started)
 	missions.mission_completed.connect(_on_mission_completed)
 	missions.mission_failed.connect(_on_mission_failed)
 	missions.checkpoint_reached.connect(_on_checkpoint)
 	missions.setup(self, self)
+	jobs = JobManager.new()
+	jobs.name = "Jobs"
+	add_child(jobs)
+	jobs.setup(self)
 	apply_quality()
 	return_to_menu()
 
@@ -101,6 +106,7 @@ func _spawn_npcs() -> void:
 		npc.setup(id, d, d.get("look", {}))
 		add_child(npc)
 		npc.cars_provider = get_cars
+		npc.lights = traffic_lights
 		npc.camera_provider = func(): return camera_rig.get_camera_position()
 		npc.build_look(d.get("look", {}) if id != "partner" else HumanoidModel.preset(GameState.partner_id()))
 		npc.snap_to_schedule(GameState.time_of_day)
@@ -220,6 +226,9 @@ func _update_interaction(locked: bool) -> void:
 	if not locked:
 		if current_car:
 			_interact_action = exit_car
+			if jobs and jobs.can_start_delivery(current_car.global_position) and absf(current_car.speed) < 3.0:
+				prompt = "Aktion: Lieferjob starten (3 Pakete)"
+				_interact_action = jobs.start_delivery
 		else:
 			var pos := player.global_position
 			var inter := missions.interaction_at(pos)
@@ -426,12 +435,22 @@ func _rescue_car(car: Car) -> void:
 func _on_car_impact(strength: float) -> void:
 	if current_car == null:
 		return
+	if jobs:
+		jobs.on_impact(strength)
 	camera_rig.add_shake(clampf(strength / 20.0, 0.1, 1.0))
 	if strength > 10.0:
 		hud.toast("Rums! Vorsichtig fahren.", 1.5)
 
 
 # ------------------------------------------------------------------ Missions-Events
+
+## Missionsziele haben Vorrang; ohne Mission zeigt ein laufender Nebenjob seine Ziele.
+func _on_objective(title: String, text: String) -> void:
+	if jobs and jobs.is_active() and not missions.is_active():
+		jobs._update_objective()
+	else:
+		hud.set_objective(title, text)
+
 
 func _on_mission_started(index: int) -> void:
 	hud.toast("Mission gestartet: %s" % MissionData.MISSIONS[index]["title"], 3.0)

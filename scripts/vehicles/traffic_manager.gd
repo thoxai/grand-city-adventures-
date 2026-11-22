@@ -13,7 +13,7 @@ extends Node
 ##   genug weg, kehrt es in den Verkehr zurück.
 
 const LANE_OFFSET := 3.5
-const STOP_BACK := 10.0
+const STOP_BACK := 13.0  # Fahrzeugmitte; Front steht an der Haltelinie vor dem Zebrastreifen
 const SEGMENT := 90.0
 const CRUISE_SPEED := 12.5
 const TURN_SPEED := 6.5
@@ -293,6 +293,11 @@ func _collect_obstacles() -> Array:
 		for c in world.get_cars():
 			if not agents.has(c):
 				obs.append([c, c.global_position, false, c == mine, c.spec["size"].z * 0.5])
+	# Passanten auf der Fahrbahn (z. B. auf dem Zebrastreifen)
+	if world.get("npcs"):
+		for npc in world.npcs.values():
+			if npc.visible and npc.on_road:
+				obs.append([npc, npc.global_position, false, false, 0.4])
 	var player = world.get("player")
 	if player and player.visible:
 		obs.append([player, player.global_position, false, true, 0.4])

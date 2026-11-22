@@ -9,13 +9,13 @@ ein verbreitetes Mittelklasse-Smartphone. Ziel: **mindestens 30 FPS** in der Qua
 
 | Größe | Budget | Gemessen* |
 |---|---|---|
-| Draw-Calls (inkl. Schatten und UI) | ≤ 180 | 74 – 155 |
-| Primitive (Dreiecke) | ≤ 200 000 | 135 000 – 171 000 |
+| Draw-Calls (inkl. Schatten und UI) | ≤ 180 | 88 – 160 |
+| Primitive (Dreiecke) | ≤ 200 000 | 136 000 – 166 000 |
 | Schattenwerfende Lichter | 1 (Sonne, 2 Kaskaden, 80 m) | 1 |
 | Dynamische Punktlichter | ≤ 8 | 6 (nur nachts) + 1 Scheinwerfer |
 | 3D-Auflösung | 85 % (Mittel) | – |
 
-\* Mit `tools/run_screenshots.sh` (Godot 4.5.1, Mobile-Renderer, 1280 × 720) in 15 Referenzszenen gemessen,
+\* Mit `tools/run_screenshots.sh` (Godot 4.5.1, Mobile-Renderer, 1280 × 720) in 17 Referenzszenen gemessen,
 mit 28 Verkehrsautos, 2 Bussen, 21 Ampelkreuzungen und 42 NPCs (Qualität „Mittel“).
 Die FPS-Werte dieser Messung sind **nicht aussagekräftig**, weil in der Entwicklungsumgebung nur ein
 Software-Renderer (lavapipe, CPU) verfügbar war. Eine Messung auf dem Referenzgerät steht noch aus.
@@ -37,7 +37,8 @@ Software-Renderer (lavapipe, CPU) verfügbar war. Eine Messung auf dem Referenzg
   Scheinwerfer-Lichter für den Verkehr (nur leuchtende Flächen); nur das eigene Auto hat ein SpotLight.
   Verkehrsdichte je Qualitätsstufe: 16 / 28 / 36 (+ 2 Busse).
 - **LOD**: Figuren ab 35 m als einzelne Silhouette, ab 140 m unsichtbar; Kennzeichen ab 15 m ausgeblendet.
-- **Simulation nur in der Nähe**: NPCs weiter als 110 m von der Kamera werden nicht simuliert.
+- **Simulation nur in der Nähe**: NPCs weiter als 110 m von der Kamera werden nicht simuliert – außer sie stehen
+  gerade auf der Fahrbahn (sonst würde der Verkehr dort ewig warten).
 - **Licht-Pool**: Statt 192 Laternenlichtern wandern 6 OmniLights alle 0,5 s zu den nächsten Laternen.
 - **UI**: Minikarte einmal in eine Textur gerendert (1 statt ~200 Zeichenbefehle).
 - **Qualitätsstufen** (Menü): Niedrig (70 % Auflösung, keine Schatten/Glow/Nebel), Mittel (85 %, Schatten 80 m),
