@@ -24,6 +24,8 @@ var _path_index := 0
 var _dodge_timer := 0.0
 var _dodge_dir := Vector3.ZERO
 var _shape: CollisionShape3D
+var _bubble: Label3D
+var _bubble_t := 0.0
 
 
 func setup(id: String, d: Dictionary, look: Dictionary) -> void:
@@ -78,6 +80,51 @@ func can_talk() -> bool:
 func set_mission_marker(v: bool) -> void:
 	if mission_marker:
 		mission_marker.visible = v
+
+
+## Sprechblase über dem Kopf.
+func say(text: String, duration: float = 2.2) -> void:
+	if _bubble == null:
+		_bubble = Label3D.new()
+		_bubble.font_size = 56
+		_bubble.pixel_size = 0.006
+		_bubble.outline_size = 10
+		_bubble.modulate = Color(1, 1, 1)
+		_bubble.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		_bubble.position = Vector3(0, 2.25, 0)
+		_bubble.visibility_range_end = 45.0
+		# Feste Bildschirmgröße: nah nicht riesig, fern noch lesbar
+		_bubble.fixed_size = true
+		_bubble.pixel_size = 0.0009
+		add_child(_bubble)
+	_bubble.text = text
+	_bubble.visible = true
+	_bubble_t = duration
+
+
+func is_saying() -> bool:
+	return _bubble != null and _bubble.visible
+
+
+## Reaktion auf eine Hupe: kommentieren, und aus dem Weg gehen, wenn vor dem Auto.
+func react_to_horn(car: Node3D) -> void:
+	if is_home or talking:
+		return
+	say(NpcData.HORN_REACTIONS[randi() % NpcData.HORN_REACTIONS.size()])
+	var fwd := -car.global_transform.basis.z
+	var rel := global_position - car.global_position
+	rel.y = 0.0
+	if rel.dot(fwd) > 0.0 and rel.length() < 12.0:
+		var side := fwd.cross(Vector3.UP).normalized()
+		_dodge_dir = side if rel.dot(side) > 0.0 else -side
+		_dodge_timer = 0.6
+
+
+func _process(delta: float) -> void:
+	if _bubble_t > 0.0:
+		_bubble_t -= delta
+		if _bubble_t <= 0.0 and _bubble:
+			_bubble.visible = false
 
 
 func begin_talk(player_pos: Vector3) -> void:

@@ -74,7 +74,7 @@ func test_traffic_flows_for_a_minute() -> void:
 	for c in tm.cars:
 		spawns1 += int(tm.agents[c].get("spawns", 0))
 	print("      Verkehr: Ø %.0f m pro Auto in 60 s, %.1f %% auf der Straße, %d Neueinsetzungen, %d langsame" % [avg, 100.0 * on_road / samples, spawns1 - spawns0, slow])
-	check(avg > 300.0, "Autos fahren flüssig (Ø %.0f m)" % avg)
+	check(avg > 300.0, "Autos fahren flüssig trotz Ampeln (Ø %.0f m)" % avg)
 	check(float(on_road) / samples > 0.97, "bleiben auf der Straße")
 	check(spawns1 - spawns0 <= 3, "kaum festgefahrene Autos (%d)" % (spawns1 - spawns0))
 	check(slow <= 2, "fast keine dauerhaft stehenden Autos (%d)" % slow)
@@ -83,16 +83,24 @@ func test_traffic_flows_for_a_minute() -> void:
 func test_traffic_stops_for_pedestrian() -> void:
 	var tm: TrafficManager = main.traffic
 	var car: Car = null
-	for c in tm.driving_cars():
-		if tm.agents[c]["phase"] == "drive":
-			car = c
+	for f in 600:
+		for c in tm.driving_cars():
+			var a: Dictionary = tm.agents[c]
+			if a["phase"] != "drive" or a.get("bus", false):
+				continue
+			var t: float = (c.global_position - TrafficManager.node_pos(a["node"])).dot(TrafficManager.dir3(a["dir"]))
+			if t > 10.0 and t < 40.0:
+				car = c
+				break
+		if car:
 			break
+		await tree().physics_frame
 	check(car != null, "fahrendes Auto gefunden")
 	if car == null:
 		return
 	var fwd := -car.global_transform.basis.z
 	var p0 := car.global_position
-	var stand := p0 + fwd * 22.0
+	var stand := p0 + fwd * 18.0
 	stand.y = 0.0
 	# Andere Autos aus dem Weg räumen, damit nur der Spieler das Hindernis ist
 	for c in tm.cars:
@@ -153,7 +161,7 @@ func test_take_over_moving_car_and_return() -> void:
 func test_density_follows_quality() -> void:
 	GameState.quality = "low"
 	main.apply_quality()
-	check_eq(main.traffic.driving_cars().size(), TrafficManager.DENSITY["low"], "wenig Verkehr bei 'niedrig'")
+	check_eq(main.traffic.driving_cars().size(), TrafficManager.DENSITY["low"] + TuningData.BUS_COUNT, "wenig Verkehr bei 'niedrig'")
 	GameState.quality = "medium"
 	main.apply_quality()
-	check_eq(main.traffic.driving_cars().size(), TrafficManager.DENSITY["medium"], "Standard")
+	check_eq(main.traffic.driving_cars().size(), TrafficManager.DENSITY["medium"] + TuningData.BUS_COUNT, "Standard")

@@ -13,6 +13,17 @@ Jeder Sprint endet mit einem lauffähigen Stand; Tests wachsen mit.
 
 | **7 – Mehr Action: Verkehr & Carsharing** | Belebte Straßen, sofort Autofahren | `TrafficManager` (Spurführung, Bézier-Abbiegen, Abstandsregel, Patt-Auflösung, Neueinsetzen außer Sicht), drei Carsharing-Modelle (Mini, Limousine, Transporter), Übernahme jedes Verkehrsautos, geparkter CityFlitzer vor der Haustür, Kamera-Wackeln bei Aufprall, Fern-LOD für Autos, Web-Audio-Fix, 6 neue Tests |
 
+| **8 – Stadtleben** | Mehr Fahrzeuge, Ampeln, Hupe, mehr NPCs | `TrafficLights` (21 Kreuzungen), KI hält an Rot, Rotlicht-Hinweis, `Horn` (prozeduraler Hupton) mit Reaktionen von Passanten und KI, Taxis und Stadtbusse, 30 generierte Passanten, Sprechblasen, Figuren-LOD in drei Stufen, 8 neue Tests |
+
+## Erkenntnisse aus Sprint 8
+
+- Abstandsregel überarbeitet: Erkennungsbereich war bei Schritttempo kürzer als der Halteabstand – Autos krochen
+  ruckelnd an Hindernisse heran. Jetzt wird zwischen den Fahrzeugenden gemessen (wichtig für 10,5 m lange Busse).
+- Ein übernommener CityFlitzer wurde von der KI weiter als KI-Auto behandelt (keine Hupe, Patt-Regel) – behoben.
+- Patt-Auflösung nur noch im Kreuzungsbereich, sonst wären Autos in Ampel-Schlangen durch den Vordermann gefahren.
+- Der Test-Runner blieb bei einer Test-Datei mit Syntaxfehler stehen (erklärt einen früheren Hänger) – meldet sie jetzt als Fehler.
+- Draw-Calls trotz mehr Inhalt gesunken (max. 155): Figuren-LOD und batchbare Minikarten-Symbole.
+
 ## Erkenntnisse aus Sprint 7
 
 - Spieler-Feedback: „Man kann nur mit der Person durch die leere Stadt laufen.“ Ursache: Autofahren war erst nach
@@ -36,6 +47,6 @@ Jeder Sprint endet mit einem lauffähigen Stand; Tests wachsen mit.
 1. Echte Figuren-/Fahrzeugmodelle (GLB, Skinning, Animationen) im bestehenden Interface.
 2. Messung auf dem Referenzgerät, ggf. Feintuning der Qualitätsstufen.
 3. Musik/Soundeffekte, haptisches Feedback.
-4. Ampeln und Vorfahrtsregeln für den Verkehr, Hupe, Verkehrsgeräusche.
+4. Vorfahrt beim Linksabbiegen, grüne Welle, Fußgängerampeln, Bushaltestellen, Verkehrsgeräusche.
 5. Speichern von Missions-Zwischenständen.
 6. Web- und iOS-Build.

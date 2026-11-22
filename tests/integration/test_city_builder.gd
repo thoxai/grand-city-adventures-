@@ -30,8 +30,15 @@ func test_important_places_are_reachable() -> void:
 
 
 func test_npc_routes_are_free() -> void:
-	for id in NpcData.NPCS.keys():
-		for entry in NpcData.NPCS[id]["schedule"]:
+	var poles := []
+	for n in range(5):
+		for m in range(5):
+			for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+				if TrafficLights.has_light(Vector2i(n, m)) and TrafficManager.valid_node(Vector2i(n, m) - d):
+					poles.append(TrafficLights._pole_pos(Vector2i(n, m), d))
+	var all := NpcData.all_npcs()
+	for id in all.keys():
+		for entry in all[id]["schedule"]:
 			var path := NpcData.path_for(entry)
 			if entry["type"] == "home":
 				continue
@@ -44,6 +51,9 @@ func test_npc_routes_are_free() -> void:
 					var p := a.lerp(b, float(k) / float(steps))
 					if not city.is_point_free(p, 0.3):
 						blocked = true
+					for pole in poles:
+						if Vector2(p.x - pole.x, p.z - pole.z).length() < 0.42:
+							blocked = true
 				check(not blocked, "Weg von %s frei (%s -> %s)" % [id, a, b])
 
 

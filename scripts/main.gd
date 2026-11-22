@@ -22,6 +22,8 @@ var cars: Dictionary = {}
 var npcs: Dictionary = {}
 var current_car: Car = null
 var traffic: TrafficManager
+var traffic_lights: TrafficLights
+var horn_count := 0
 var game_running := false
 var input_locked := false
 var collectible_nodes: Dictionary = {}
@@ -35,9 +37,14 @@ func _ready() -> void:
 	day_night.camera_provider = func(): return camera_rig.get_camera_position()
 	_spawn_player()
 	_spawn_cars()
+	traffic_lights = TrafficLights.new()
+	traffic_lights.name = "TrafficLights"
+	add_child(traffic_lights)
+	traffic_lights.build()
 	traffic = TrafficManager.new()
 	traffic.name = "Traffic"
 	add_child(traffic)
+	traffic.lights = traffic_lights
 	traffic.setup(self)
 	for c in traffic.cars:
 		c.impact.connect(_on_car_impact)
@@ -87,8 +94,9 @@ func _reset_cars() -> void:
 
 
 func _spawn_npcs() -> void:
-	for id in NpcData.NPCS.keys():
-		var d: Dictionary = NpcData.NPCS[id]
+	var all := NpcData.all_npcs()
+	for id in all.keys():
+		var d: Dictionary = all[id]
 		var npc: Npc = NpcScene.instantiate()
 		npc.setup(id, d, d.get("look", {}))
 		add_child(npc)
@@ -194,6 +202,10 @@ func _process(delta: float) -> void:
 			open_tuning()
 		if current_car.global_position.y < -3.0:
 			_rescue_car(current_car)
+		# Hupe: gedrückt halten = hupen
+		if not locked and Input.is_action_just_pressed("horn"):
+			honk()
+		current_car.horn_hold(not locked and Input.is_action_pressed("horn"))
 	else:
 		hud.set_tuning_available(false)
 		if player.global_position.y < -5.0:
@@ -353,6 +365,7 @@ func exit_car(force: bool = false) -> void:
 		hud.toast("Erst langsamer werden!")
 		return
 	car.set_active(false)
+	car.horn_hold(false)
 	car.headlights_on = false
 	current_car = null
 	player.global_position = _find_exit_position(car)
@@ -363,6 +376,18 @@ func exit_car(force: bool = false) -> void:
 	camera_rig.set_target(player)
 	camera_rig.yaw = car.global_rotation.y
 	hud.set_vehicle_mode(false)
+
+
+## Spieler hupt: Passanten in der Nähe reagieren (Sprechblase, ggf. Ausweichen).
+func honk() -> void:
+	if current_car == null:
+		return
+	horn_count += 1
+	current_car.honk(0.3)
+	var p := current_car.global_position
+	for npc in npcs.values():
+		if npc.visible and npc.global_position.distance_to(p) < 16.0:
+			npc.react_to_horn(current_car)
 
 
 func _set_player_collision(enabled: bool) -> void:

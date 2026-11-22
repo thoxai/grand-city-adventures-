@@ -242,6 +242,86 @@ const NPCS := {
 }
 
 
+# ------------------------------------------------------------------ Passanten
+
+const PEDESTRIAN_COUNT := 30
+const PEDESTRIAN_SEED := 777
+const FIRST_NAMES := ["Lukas", "Emma", "Noah", "Hanna", "Elias", "Lea", "Finn", "Amira", "Jonah", "Mila",
+	"Yusuf", "Clara", "Ben", "Zoe", "Mateo", "Ida", "Leon", "Aylin", "Paul", "Nele", "Karim", "Lina",
+	"Theo", "Sara", "Milan", "Frieda", "Oskar", "Elif", "Henri", "Maja"]
+const SKIN := [Color(0.95, 0.8, 0.7), Color(0.88, 0.7, 0.58), Color(0.78, 0.58, 0.45), Color(0.62, 0.43, 0.32),
+	Color(0.48, 0.32, 0.23), Color(0.36, 0.24, 0.17)]
+const HAIR := [Color(0.08, 0.06, 0.05), Color(0.2, 0.13, 0.08), Color(0.4, 0.25, 0.12), Color(0.75, 0.6, 0.35),
+	Color(0.6, 0.6, 0.6), Color(0.5, 0.18, 0.1)]
+const TOPS := [Color(0.15, 0.2, 0.35), Color(0.55, 0.12, 0.15), Color(0.2, 0.45, 0.35), Color(0.85, 0.85, 0.82),
+	Color(0.25, 0.25, 0.27), Color(0.9, 0.6, 0.15), Color(0.45, 0.35, 0.6), Color(0.35, 0.55, 0.75), Color(0.6, 0.5, 0.35)]
+const PANTS := [Color(0.15, 0.18, 0.28), Color(0.1, 0.1, 0.12), Color(0.4, 0.38, 0.33), Color(0.3, 0.35, 0.45), Color(0.25, 0.2, 0.15)]
+const PED_LINES := {
+	"morning": ["Guten Morgen! Ich muss zur Arbeit.", "Ohne Frühstück geht bei mir gar nichts.", "Der Bus ist schon wieder voll...",
+		"Schon gesehen? An den Kreuzungen gibt es jetzt Ampeln."],
+	"day": ["Schönes Wetter heute, oder?", "Achtung beim Überqueren – hier fahren viele CityFlitzer.",
+		"Im Lindenpark soll eine Energiezelle versteckt sein.", "Kenji kann wirklich jedes Auto reparieren.",
+		"Ich warte auf die Linie 7.", "Das Rathaus ist frisch renoviert."],
+	"evening": ["Feierabend! Endlich.", "Abends ist die Stadt am schönsten.", "Hast du die Lichter am Hafen gesehen?",
+		"Wer hupt denn da schon wieder?"],
+	"night": ["Ich muss dringend ins Bett.", "Nachts ist es hier so ruhig.", "Nur noch kurz zum Kiosk."],
+}
+const HORN_REACTIONS := ["Hey!", "Schon gut, schon gut!", "Nicht so laut!", "Huch!", "Ich geh ja schon!", "Hallo auch!"]
+
+static var _all: Dictionary = {}
+
+
+## Alle NPCs: Story-/Nebenfiguren plus generierte Passanten (deterministisch).
+static func all_npcs() -> Dictionary:
+	if _all.is_empty():
+		_all = NPCS.duplicate()
+		_all.merge(generate_pedestrians(PEDESTRIAN_COUNT, PEDESTRIAN_SEED))
+	return _all
+
+
+static func generate_pedestrians(count: int, seed_value: int) -> Dictionary:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value
+	var out := {}
+	var styles := ["short", "short", "ponytail", "bun", "cap"]
+	var tops := ["hoodie", "jacket", "shirt"]
+	for i in count:
+		var look := {
+			"skin": SKIN[rng.randi() % SKIN.size()],
+			"hair": HAIR[rng.randi() % HAIR.size()],
+			"hair_style": styles[rng.randi() % styles.size()],
+			"top": TOPS[rng.randi() % TOPS.size()],
+			"top_style": tops[rng.randi() % tops.size()],
+			"pants": PANTS[rng.randi() % PANTS.size()],
+			"shoes": [Color(0.9, 0.9, 0.9), Color(0.12, 0.12, 0.12), Color(0.45, 0.3, 0.2)][rng.randi() % 3],
+			"height": rng.randf_range(1.56, 1.9),
+			"build": rng.randf_range(0.88, 1.15),
+			"accent": TOPS[rng.randi() % TOPS.size()].lightened(0.3),
+		}
+		var block := Vector2i(rng.randi_range(0, 3), rng.randi_range(0, 3))
+		var walk := {"type": "walk", "loop_block": block, "inset": [1.6, 2.0, 2.4][rng.randi() % 3],
+			"reverse": rng.randf() < 0.5, "start": rng.randi_range(0, 3)}
+		var schedule: Array
+		if rng.randf() < 0.15:
+			# Nachtschwärmer
+			walk["from"] = rng.randf_range(9.0, 11.5)
+			schedule = [{"from": 0.0, "type": "walk", "loop_block": block, "inset": walk["inset"], "reverse": walk["reverse"], "start": walk["start"]},
+				{"from": 1.5, "type": "home"}, walk]
+		else:
+			walk["from"] = rng.randf_range(6.0, 10.0)
+			schedule = [{"from": 0.0, "type": "home"}, walk, {"from": rng.randf_range(18.5, 23.0), "type": "home"}]
+		out["ped_%d" % i] = {
+			"name": FIRST_NAMES[i % FIRST_NAMES.size()],
+			"story": false,
+			"pedestrian": true,
+			"speed": rng.randf_range(1.1, 1.7),
+			"look": look,
+			"schedule": schedule,
+			"lines": PED_LINES,
+		}
+	return out
+
+
 static func time_slot(hour: float) -> String:
 	if hour >= 5.0 and hour < 11.0:
 		return "morning"
@@ -268,12 +348,16 @@ static func path_for(entry: Dictionary) -> Array:
 		return entry["path"]
 	if entry.has("loop_block"):
 		var b: Vector2i = entry["loop_block"]
-		return CityLayout.sidewalk_loop(b.x, b.y)
+		var loop := CityLayout.sidewalk_loop(b.x, b.y, float(entry.get("inset", 2.0)))
+		if entry.get("reverse", false):
+			loop.reverse()
+		var k := int(entry.get("start", 0)) % loop.size()
+		return loop.slice(k) + loop.slice(0, k)
 	return [entry.get("at", Vector3.ZERO)]
 
 
 static func line_for(npc_id: String, hour: float, story_done: bool) -> String:
-	var d: Dictionary = NPCS.get(npc_id, {})
+	var d: Dictionary = all_npcs().get(npc_id, {})
 	var lines: Dictionary = d.get("lines", {})
 	var slot := "after" if story_done and lines.has("after") else time_slot(hour)
 	var arr: Array = lines.get(slot, [])

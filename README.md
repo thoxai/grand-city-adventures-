@@ -12,6 +12,8 @@ Fahrzeug-Tuning und Erkundung.
 | ![Start](docs/screenshots/02_start_alex_tag.png) | ![Rätsel](docs/screenshots/06_raetsel_sicherungen.png) | ![Tuning](docs/screenshots/08_tuning.png) |
 | **Straßenverkehr** | **Im CityFlitzer unterwegs** | **Verkehr bei Nacht** |
 | ![Verkehr](docs/screenshots/11_verkehr_kreuzung.png) | ![Flitzer](docs/screenshots/12_flitzer_im_verkehr.png) | ![Nacht](docs/screenshots/13_verkehr_nacht.png) |
+| **Ampelkreuzung** | **Hupen – Passanten reagieren** | |
+| ![Ampel](docs/screenshots/14_ampel_passanten.png) | ![Hupe](docs/screenshots/15_hupe_reaktion.png) | |
 
 Die Screenshots werden automatisch mit `tools/run_screenshots.sh` gerendert.
 
@@ -24,17 +26,17 @@ Die Screenshots werden automatisch mit `tools/run_screenshots.sh` gerendert.
 | 1 | Stadtviertel ca. 400 × 400 m | „Alter Hafen“: 4 × 4 Blöcke im 90-m-Straßenraster, Wohnviertel, City-Ring, Park, Rathausplatz, Werkstatt, Gewerbehof mit Funkturm, Hafen; Skyline und Wasser als Kulisse |
 | 2 | Zwei spielbare Figuren | **Alex** (Technik-Tüftler) und **Mia** (Kartsport-Talent); die jeweils andere Figur erscheint als NPC in der Story; Wechsel im Pause-Menü |
 | 3 | Third-Person-Kamera + Touch | SpringArm-Kamera (weicht Wänden aus), Multi-Touch: dynamischer Joystick, Wisch-Kamera, runde Aktionsknöpfe; zusätzlich Tastatur/Maus/Gamepad |
-| 4 | Zwei Autos, Arcade-Physik | **Lumen K2** (Kompakt) und **Vireo RS** (Sportcoupé); Längs-/Quergrip-Modell mit Driften, Handbremse, Nitro. Dazu **Straßenverkehr** mit 20 CityFlitzer-Carsharing-Autos (Kleinwagen, Limousine, Transporter), die man jederzeit übernehmen kann |
+| 4 | Zwei Autos, Arcade-Physik | **Lumen K2** (Kompakt) und **Vireo RS** (Sportcoupé); Längs-/Quergrip-Modell mit Driften, Handbremse, Nitro. Dazu **Straßenverkehr** mit 28 Autos (Kleinwagen, Limousine, Transporter, Taxi) und 2 Stadtbussen; jeder CityFlitzer kann jederzeit übernommen werden, 21 Ampelkreuzungen, Hupe |
 | 5 | Ein-/Aussteigen, Tuning | Aktion-Knopf; Werkstatt: Motor (3 Stufen), Reifen & Fahrwerk (3), Nitro (2), Lackierung (6 Farben) |
 | 6 | Fünf Missionen mit Story | Neu im Viertel · Die Hafenrunde (Rennen) · Kurzschluss (Rätsel) · Ersatzteile im Eiltempo (Zeit-Lieferung) · Das Störsignal (Frequenz-Rätsel + Zeitdruck-Finale) |
-| 7 | NPCs mit Dialogen und Tagesabläufen | 12 NPCs, Dialoge je Tageszeit, Rundgänge, nachts zu Hause; weichen fahrenden Autos aus |
+| 7 | NPCs mit Dialogen und Tagesabläufen | 42 NPCs: 12 Story-/Nebenfiguren und 30 generierte Passanten mit eigenem Aussehen, Rundgängen und Tagesrhythmus; Dialoge je Tageszeit, Sprechblasen, weichen Autos aus |
 | 8 | Minikarte, Ziele, Fortschritt, Belohnungen | Spielerzentrierte Minikarte mit Zielpfeil, Missionsziel-Panel, Timer, Checkpoints, Geld, Abschluss-Panel, 12 Energiezellen zum Sammeln |
 | 9 | Tag-Nacht-Wechsel | 24-Minuten-Tag, Sonnen-/Mondlicht, prozeduraler Himmel, Dämmerung, leuchtende Fenster, Straßenlaternen, Scheinwerfer |
 | 10 | Lokales Speichern/Laden | JSON unter `user://savegame.json`, Autosave nach jeder Mission, Weiterspielen im Hauptmenü |
 
 ## Straßenverkehr & Carsharing
 
-- **20 Autos** (Qualität Niedrig/Mittel/Hoch: 12/20/28) fahren auf der rechten Spur durch das Straßenraster,
+- **28 Autos und 2 Stadtbusse** (Qualität Niedrig/Mittel/Hoch: 16/28/36 Autos) fahren auf der rechten Spur durch das Straßenraster,
   biegen an Kreuzungen zufällig ab und bremsen vor Hindernissen – auch vor dir, wenn du auf der Straße stehst.
   Es gibt keine Unfälle mit Fußgängern.
 - Die Verkehrsautos sind **CityFlitzer-Carsharing-Wagen** (grüner Streifen, Dachschild). Du kannst in **jeden**
@@ -43,7 +45,21 @@ Die Screenshots werden automatisch mit `tools/run_screenshots.sh` gerendert.
   Zwei weitere parken am Rathausplatz und an der Werkstatt.
 - Zurückgelassene CityFlitzer kehren in den Verkehr zurück, sobald du weit genug weg bist.
 - Carsharing-Autos kann man nicht tunen; dafür gibt es die eigenen Autos aus der Story (Lumen K2, Vireo RS).
-- Auf der Minikarte erscheinen CityFlitzer als grüne Punkte. Bei einem Aufprall wackelt die Kamera.
+- Auf der Minikarte erscheinen CityFlitzer als grüne, Busse als gelbe Punkte. Bei einem Aufprall wackelt die Kamera.
+- Neben CityFlitzern (Mini, Komfort, Transporter) fahren gelbe **Taxis** (ebenfalls nutzbar) und die
+  **Stadtbus-Linie 7** (nur für Fahrgäste – hier kann man nicht einsteigen).
+
+## Ampeln, Hupe & Passanten
+
+- **21 Ampelkreuzungen** (alle außer den vier Ecken): Grün 9 s, Gelb 2 s, 1 s Alle-Rot, Achsen abwechselnd,
+  Kreuzungen zeitversetzt. Die KI hält an der Haltelinie, bei Gelb nur, wenn sie noch sicher bremsen kann.
+  Fährst du selbst bei Rot in eine Kreuzung, erscheint ein Hinweis (ohne Strafe).
+- **Hupe** (Taste `H`, Gamepad B, Touch-Knopf „Hupe“ im Auto): Passanten in der Nähe kommentieren das mit einer
+  Sprechblase („Hey!“, „Ich geh ja schon!“) und treten zur Seite, wenn sie vor dem Auto stehen. Blockierst du
+  ein KI-Auto länger, hupt es zurück. Der Hupton wird zur Laufzeit erzeugt (kein Audio-Asset).
+- **30 Passanten** mit zufälligem (aber reproduzierbarem) Aussehen, Namen, Gehtempo und Tagesrhythmus laufen um
+  die Häuserblocks; tagsüber sind die meisten unterwegs, nachts nur ein paar Nachtschwärmer. Alle sind
+  ansprechbar und geben Tipps.
 
 ## Schnellstart
 
@@ -67,12 +83,13 @@ godot --path .
 | Sprinten | **Sprint** | Shift | LB |
 | Gas / Bremse (Auto) | **Gas** / **Bremse** (oder Joystick vor/zurück) | W / S | Stick |
 | Nitro | **Nitro** (nach Einbau) | `N` / Strg | RB |
+| Hupe | **Hupe** | `H` | B |
 | Tuning in der Werkstatt | Knopf „Tuning öffnen“ | `T` | X |
 | Pause / Speichern | **II** | `Esc` / `P` | Start |
 
 ## Tests
 
-80 automatisierte Tests (Unit + Integration), ohne externe Abhängigkeiten:
+88 automatisierte Tests (Unit + Integration), ohne externe Abhängigkeiten:
 
 ```bash
 GODOT=/pfad/zu/godot tools/run_tests.sh
@@ -88,7 +105,10 @@ Abgedeckt sind u. a.:
 - **Missionen**: Schritt-für-Schritt-Logik, Zeitlimit mit Wiederholung, komplette Story mit Belohnungssumme.
 - **Hauptszene**: Menü, Figurwahl, Laufen, Touch-Joystick und Multi-Touch-Knöpfe, Dialoge, Ein-/Aussteigen, **kompletter Story-Durchlauf** inkl. Rätsel-UI, Tuning-Kauf, Sammeln, Speichern/Laden der Welt, Pause, NPC-Tagesablauf, Ausweichen.
 - **KI-Fahrer**: Ein Autopilot fährt „Die Hafenrunde“ mit echter Physik durch die generierte Stadt – trotz Verkehr ca. 43 s bei 80 s Zeitlimit.
-- **Straßenverkehr**: 60 s Simulation mit 20 Autos – Ø über 600 m pro Auto, 100 % auf der Straße, kein Auto bleibt hängen;
+- **Ampeln & Stadtleben**: Phasen schließen sich gegenseitig aus; 40 s Simulation: KI wartet an Rot, **0 Rotlichtverstöße**;
+  Busse fahren, sind aber nicht nutzbar; Hupe löst Reaktionen aus; KI hupt, wenn der Spieler blockiert; Rotlicht-Hinweis;
+  Passanten deterministisch, mittags unterwegs, nachts zu Hause; alle Wege frei von Gebäuden, Bäumen und Ampelmasten.
+- **Straßenverkehr**: 60 s Simulation mit 30 Fahrzeugen und Ampeln – Ø über 400 m pro Auto, 100 % auf der Straße, kein Auto bleibt hängen;
   Anhalten vor Fußgängern; Einsteigen in den geparkten CityFlitzer am Start; Übernahme fahrender Autos und Rückkehr in den Verkehr.
 
 Screenshots und Draw-Call-Messung (benötigt Vulkan; in CI/Containern per lavapipe):
@@ -165,8 +185,10 @@ Paketname `org.example.grandcityadventures` ist ein Platzhalter und muss vor ein
   es wurde kein APK gebaut. Das 30-FPS-Ziel ist über ein Budget (Draw-Calls, Primitive, Lichter) abgesichert und
   mit Software-Rendering vermessen, nicht mit echter Mobil-GPU (siehe [PERFORMANCE.md](docs/PERFORMANCE.md)).
 - **Touch-Steuerung** ist per simulierter Multi-Touch-Events getestet, nicht mit echten Fingern.
-- **Verkehr ohne Ampeln**: KI-Autos fahren mit Abstandsregel; an Kreuzungen können sie sich kurz gegenseitig
-  durchlassen bzw. sich bei längerem Patt ineinander schieben (sie kollidieren untereinander bewusst nicht).
+- **Verkehrsregeln vereinfacht**: Ampeln ja, aber keine Vorfahrt beim Linksabbiegen und keine grüne Welle.
+  KI-Autos kollidieren untereinander bewusst nicht; blockieren sie sich mitten in einer Kreuzung länger als 4 s,
+  fahren sie durcheinander hindurch. Lange Busse schneiden beim Abbiegen die Ecken.
+- **Passanten** sind vereinfacht: ab 18 m Entfernung ohne Gliederbewegung (Performance), sie überqueren keine Straßen.
   NPCs laufen feste Wege (keine NavMesh-Navigation).
 - **Audio**: nur ein prozedural erzeugter Motorsound; keine Musik, keine Soundeffekte.
 - **Speichern mitten in einer Mission** sichert nur Fortschritt außerhalb der Mission; nach dem Laden startet die

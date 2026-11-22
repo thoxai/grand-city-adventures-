@@ -30,9 +30,10 @@ const STYLES := {
 	"coupe": {"cab": 0.42, "top": 0.5, "cab_z": 0.06, "top_off": 0.15, "lower": 0.42, "axle": 0.8},
 	"sedan": {"cab": 0.46, "top": 0.58, "cab_z": 0.03, "top_off": 0.04, "lower": 0.42, "axle": 0.85},
 	"van": {"cab": 0.8, "top": 0.88, "cab_z": 0.07, "top_off": 0.03, "lower": 0.38, "axle": 0.9},
+	"bus": {"cab": 0.96, "top": 0.98, "cab_z": 0.0, "top_off": 0.0, "lower": 0.3, "axle": 2.0},
 }
 ## Ab dieser Entfernung werden vereinfachte Räder (ohne Drehung) gezeichnet.
-const WHEEL_DETAIL_RANGE := 28.0
+const WHEEL_DETAIL_RANGE := 20.0
 
 
 ## simple = true: Verkehrsfahrzeug (Carsharing-Design, kein Kennzeichen,
@@ -44,7 +45,7 @@ func build(spec: Dictionary, color: Color, plate: String = "GC 0000", simple: bo
 	var h := size.y
 	var l := size.z
 	var st: Dictionary = STYLES.get(style, STYLES["hatch"])
-	wheel_radius = 0.33 if style == "hatch" else (0.38 if style == "van" else 0.34)
+	wheel_radius = {"hatch": 0.33, "van": 0.38, "bus": 0.48}.get(style, 0.34)
 
 	paint = StandardMaterial3D.new()
 	paint.albedo_color = color
@@ -128,12 +129,18 @@ func build(spec: Dictionary, color: Color, plate: String = "GC 0000", simple: bo
 			_trim_add(MeshFactory.box_mesh(Vector3(0.02, 0.1, 0.5)), _t(Vector3(sx * w * 0.49, clearance + lower_h * 0.55, l * 0.12)), c_trim)
 
 	if simple:
-		# Carsharing-Design: grüner Seitenstreifen und Dachschild
-		var green := Color(0.15, 0.85, 0.45)
+		# Verkehrs-Design: Seitenstreifen und Dachschild (Carsharing grün, Taxi schwarz/gelb)
+		var stripe: Color = spec.get("stripe", Color(0.15, 0.85, 0.45))
+		var sign: Color = spec.get("sign", stripe)
 		for sx in [-1.0, 1.0]:
-			_trim_add(MeshFactory.box_mesh(Vector3(0.015, 0.07, l * 0.8)), _t(Vector3(sx * w * 0.493, clearance + lower_h * 0.45, 0)), green)
-		_trim_add(MeshFactory.box_mesh(Vector3(0.5, 0.16, 0.12)), _t(Vector3(0, h + 0.07, cab_z + top_off)), green)
-		_trim_add(MeshFactory.box_mesh(Vector3(0.52, 0.03, 0.14)), _t(Vector3(0, h - 0.005, cab_z + top_off)), c_trim)
+			_trim_add(MeshFactory.box_mesh(Vector3(0.015, 0.07, l * 0.8)), _t(Vector3(sx * w * 0.493, clearance + lower_h * 0.45, 0)), stripe)
+		if style == "bus":
+			# Zielanzeige vorne und hinten
+			for zf in [-1.0, 1.0]:
+				_trim_add(MeshFactory.box_mesh(Vector3(w * 0.7, 0.25, 0.04)), _t(Vector3(0, h - 0.25, zf * (l * 0.5 + 0.01))), sign)
+		else:
+			_trim_add(MeshFactory.box_mesh(Vector3(0.5, 0.16, 0.12)), _t(Vector3(0, h + 0.07, cab_z + top_off)), sign)
+			_trim_add(MeshFactory.box_mesh(Vector3(0.52, 0.03, 0.14)), _t(Vector3(0, h - 0.005, cab_z + top_off)), c_trim)
 
 	# Radhäuser
 	var wheel_x := w * 0.5 - 0.12

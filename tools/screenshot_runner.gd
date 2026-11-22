@@ -88,6 +88,28 @@ func _ready() -> void:
 	GameState.time_of_day = 21.5
 	await _wait(2.0)
 	await _shot("13_verkehr_nacht")
+	# Ampelkreuzung mit Bus und Passanten, Hupe mit Sprechblasen
+	main.exit_car(true)
+	GameState.time_of_day = 12.5
+	main.player.global_position = Vector3(9.5, 0, 72)
+	main.camera_rig.yaw = PI - 0.35
+	main.camera_rig.pitch = deg_to_rad(-15.0)
+	for npc in main.npcs.values():
+		npc.snap_to_schedule(12.5)
+	await _wait(5.0)
+	await _shot("14_ampel_passanten")
+	var parked: Car = main.traffic.cars[main.traffic.cars.size() - 2]
+	main.enter_car(parked)
+	var k := 0
+	for npc in main.npcs.values():
+		if npc.visible and not npc.is_home and k < 4:
+			npc.global_position = parked.global_position + Vector3(-3.5 + k * 2.2, 0, 3.5)
+			k += 1
+	main.camera_rig.yaw = parked.rotation.y + PI * 0.8
+	await _wait(0.5)
+	main.honk()
+	await _wait(0.4)
+	await _shot("15_hupe_reaktion")
 	get_tree().quit()
 
 

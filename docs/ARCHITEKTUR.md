@@ -26,8 +26,9 @@ Main (main.gd)
 ├── HUD (CanvasLayer)         UIRoot → HUD-Ebene, Touch, Minikarte, Dialog, Menüs, Panels
 ├── Player                    CharacterBody3D + HumanoidModel
 ├── car_compact, car_sport    CharacterBody3D (Car) + CarModel + EngineAudio
-├── Traffic (TrafficManager)  steuert Flitzer_0 … Flitzer_30 (Carsharing-Autos, ebenfalls Car)
-├── NPC_* (12)                CharacterBody3D (Npc) + HumanoidModel
+├── TrafficLights             21 Ampelkreuzungen (MultiMeshes + Kollision der Masten)
+├── Traffic (TrafficManager)  steuert Flitzer_0 … Flitzer_40 (Carsharing, Taxis, Busse – alle Car)
+├── NPC_* (42)                CharacterBody3D (Npc) + HumanoidModel (12 Figuren + 30 Passanten)
 └── Cell_* (12)               Energiezellen
 ```
 
@@ -45,6 +46,8 @@ Main (main.gd)
 | `Player`, `CameraRig`, `HumanoidModel` | Laufen/Sprinten/Springen relativ zur Kamera, Gelenk-Animation |
 | `Car`, `CarModel`, `EngineAudio` | Arcade-Fahrphysik, Fahrzeugmodell, prozeduraler Motorsound |
 | `TrafficManager` | Verkehrs-KI: Kreuzungsgraph, Spurpunkte, Bézier-Abbiegen, Abstandsregel, Neueinsetzen, Übernahme durch Spieler, Dichte je Qualitätsstufe |
+| `TrafficLights` | Ampelphasen je Kreuzung (rein zeitbasiert, statisch testbar), Darstellung als MultiMeshes |
+| `Horn` | Erzeugt den Hupton einmalig als AudioStreamWAV (läuft auch im Web) |
 | `Npc` | Tagesablauf (idle/walk/home), Dialog-Zustand, Ausweichen vor Autos, Simulation nur in Kameranähe |
 | `MissionManager` | Schrittautomat: talk, goto, drive, enter_car, race, delivery, puzzle; Timer und Wiederholung |
 | `PuzzleLogic` | Sicherungs-Rätsel (garantiert lösbar, mit Tipp) und Frequenz-Rätsel |
@@ -68,9 +71,18 @@ Main (main.gd)
   Ausfahrspur ist.
 - Gesteuert wird über dieselbe `Car.simulate()`-Physik wie beim Spieler (externe Eingaben). Deshalb kann der
   Spieler jedes Verkehrsauto nahtlos übernehmen.
-- Abstandsregel: Hindernisse in einem 2,4 m breiten Korridor vor dem Auto (Länge 6 m + 1,4 s × Tempo) bremsen es.
+- Ampeln: Vor der Haltelinie fragt das Auto `TrafficLights.state(kreuzung, achse)`; bei Rot (oder Gelb mit
+  ausreichendem Bremsweg) hält es an der Haltelinie und wechselt erst bei Grün in die Abbiegekurve.
+- Abstandsregel: Hindernisse in einem 2,4 m breiten Korridor vor dem Auto bremsen es; gemessen wird der Abstand
+  zwischen den Fahrzeugenden (Erkennung 5 m + 1,4 s × Tempo, Halt bei < 2,5 m).
   KI-Autos kollidieren untereinander nicht physikalisch; nach 4 s gegenseitigem Blockieren ignorieren sie sich
-  kurz, das löst Patt-Situationen an Kreuzungen.
+  kurz – aber nur im Kreuzungsbereich, damit Ampel-Schlangen intakt bleiben. Blockiert der Spieler, hupt die KI.
+
+## Passanten
+
+`NpcData.generate_pedestrians()` erzeugt per Seed 30 Passanten: Aussehen aus Farbpaletten, Größe und Statur,
+Gehtempo, Rundweg um einen zufälligen Block (Abstand 1,6–2,4 m vom Bordstein, Richtung und Startecke variieren)
+und Tagesrhythmus. `NpcData.all_npcs()` liefert Story-Figuren und Passanten gemeinsam.
 
 ## Gewaltfreies Design
 

@@ -16,6 +16,7 @@ const SUITES := [
 	"res://tests/integration/test_main_flow.gd",
 	"res://tests/integration/test_race_autopilot.gd",
 	"res://tests/integration/test_traffic.gd",
+	"res://tests/integration/test_city_life.gd",
 ]
 
 
@@ -32,6 +33,12 @@ func _ready() -> void:
 		if only != "" and not path.contains(only):
 			continue
 		var script: GDScript = load(path)
+		if script == null or not script.can_instantiate():
+			# Parse-Fehler in der Test-Datei: als Fehlschlag melden statt hängen zu bleiben
+			failed += 1
+			failed_names.append("%s (lässt sich nicht laden)" % path.get_file())
+			print("\n== %s\n  ✘ Datei lässt sich nicht laden (Syntaxfehler?)" % path.get_file())
+			continue
 		var suite: TestCase = script.new()
 		suite.runner = self
 		print("\n== %s" % path.get_file())

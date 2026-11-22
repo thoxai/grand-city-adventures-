@@ -31,6 +31,7 @@ func _ready() -> void:
 	_add("Bremse", "move_back", Vector2(250, 250), 46, ["car"], Color(1.0, 0.4, 0.35))
 	_add("Hand-\nbremse", "jump", Vector2(105, 290), 40, ["car"])
 	_add("Nitro", "nitro", Vector2(380, 150), 40, ["car"], UiTheme.ACCENT_2)
+	_add("Hupe", "horn", Vector2(380, 290), 40, ["car"], Color(1.0, 0.85, 0.3))
 	resized.connect(_layout)
 	_layout()
 	set_mode("foot")

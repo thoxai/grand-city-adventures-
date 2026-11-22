@@ -92,8 +92,42 @@ func set_ai(v: bool) -> void:
 		external_input = {}
 
 
+## Hupe: kurz (KI) oder dauerhaft, solange gehalten (Spieler).
+var horn_player: AudioStreamPlayer3D
+var _horn_time := 0.0
+
+
+func honk(duration: float = 0.35) -> void:
+	if horn_player == null:
+		horn_player = Horn.make_player()
+		add_child(horn_player)
+	if not horn_player.playing:
+		horn_player.play()
+	_horn_time = maxf(_horn_time, duration)
+
+
+func horn_hold(on: bool) -> void:
+	if on:
+		honk(0.1)
+	elif horn_player and _horn_time <= 0.0:
+		horn_player.stop()
+
+
+func is_honking() -> bool:
+	return horn_player != null and horn_player.playing
+
+
+func _process(delta: float) -> void:
+	if _horn_time > 0.0:
+		_horn_time -= delta
+		if _horn_time <= 0.0 and horn_player:
+			horn_player.stop()
+
+
 func is_usable() -> bool:
-	return shared or GameState.is_car_unlocked(car_id)
+	if shared:
+		return bool(spec.get("usable", true))
+	return GameState.is_car_unlocked(car_id)
 
 
 func display_name() -> String:

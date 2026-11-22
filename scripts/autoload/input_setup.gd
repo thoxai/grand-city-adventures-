@@ -13,6 +13,7 @@ const KEYS := {
 	"interact": [KEY_E, KEY_F],
 	"nitro": [KEY_N, KEY_CTRL],
 	"tuning": [KEY_T],
+	"horn": [KEY_H],
 	"pause": [KEY_ESCAPE, KEY_P],
 	"camera_reset": [KEY_C],
 }
@@ -24,6 +25,7 @@ const PAD_BUTTONS := {
 	"nitro": JOY_BUTTON_RIGHT_SHOULDER,
 	"pause": JOY_BUTTON_START,
 	"tuning": JOY_BUTTON_X,
+	"horn": JOY_BUTTON_B,
 }
 
 const PAD_AXES := {

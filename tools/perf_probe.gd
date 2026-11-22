@@ -18,8 +18,12 @@ func _ready() -> void:
 	await _m("ohne Schatten")
 	for n in main.npcs.values(): n.visible = false
 	await _m("ohne NPCs")
+	for c in main.traffic.cars: c.visible = false
+	await _m("ohne Verkehr")
+	main.traffic_lights.visible = false
+	await _m("ohne Ampeln")
 	for c in main.cars.values(): c.visible = false
-	await _m("ohne Autos")
+	await _m("ohne eigene Autos")
 	main.player.visible = false
 	await _m("ohne Spieler")
 	for c in main.city.get_children():

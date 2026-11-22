@@ -206,6 +206,17 @@ class Batch:
 			for i in idx:
 				indices.append(base + i)
 
+	## Hängt eine andere Batch mit Transformation an (z. B. zum Zusammenfassen ganzer Figuren).
+	func add_batch(other: Batch, xform: Transform3D) -> void:
+		var base := verts.size()
+		var nb := xform.basis.inverse().transposed()
+		for i in other.verts.size():
+			verts.append(xform * other.verts[i])
+			normals.append((nb * other.normals[i]).normalized())
+			colors.append(other.colors[i])
+		for i in other.indices:
+			indices.append(base + i)
+
 	func is_empty() -> bool:
 		return verts.is_empty()
 

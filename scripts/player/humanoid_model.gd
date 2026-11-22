@@ -5,7 +5,10 @@ extends Node3D
 ## Dient als eigenes Platzhalter-Asset, bis echte Modelle (GLB) vorliegen.
 ## Fernansicht: Ab 40 m wird nur noch eine einzelne Silhouette gezeichnet.
 
-const DETAIL_RANGE := 35.0
+## Detailstufen: animierte Einzelteile < 18 m, eine zusammengefasste Figur
+## (ohne Gliederbewegung) bis 60 m, danach eine einfache Silhouette bis 140 m.
+const DETAIL_RANGE := 18.0
+const MID_RANGE := 60.0
 const FAR_RANGE := 140.0
 
 var params: Dictionary = {}
@@ -22,6 +25,7 @@ var _head: Node3D
 var _phase := 0.0
 var _wave := 0.0
 var waving := false
+var _parts: Array = []
 
 
 static func preset(id: String) -> Dictionary:
@@ -151,6 +155,17 @@ func build(p: Dictionary) -> void:
 		(mi as MeshInstance3D).visibility_range_end = DETAIL_RANGE
 		(mi as MeshInstance3D).visibility_range_end_margin = 2.0
 
+	# Mittlere Entfernung: ganze Figur in EINEM Mesh (Ruhepose)
+	var mid_b := MeshFactory.Batch.new()
+	for part in _parts:
+		mid_b.add_batch(part[0], _relative_to_self(part[1]))
+	var mid := mid_b.to_instance(mat, self)
+	mid.name = "MidLOD"
+	mid.visibility_range_begin = DETAIL_RANGE
+	mid.visibility_range_end = MID_RANGE
+	mid.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_parts.clear()
+
 	# Fernansicht: eine einzige Silhouette
 	var far_b := MeshFactory.Batch.new()
 	far_b.add(MeshFactory.capsule_mesh(0.2 * w, 0.95, 8), _t(Vector3(0, 1.25, 0), Vector3.ZERO, Vector3(1, 1, 0.7)), top)
@@ -159,7 +174,7 @@ func build(p: Dictionary) -> void:
 	var far := far_b.to_instance(mat, self)
 	far.name = "FarLOD"
 	far.scale = Vector3(h, h, h)
-	far.visibility_range_begin = DETAIL_RANGE
+	far.visibility_range_begin = MID_RANGE
 	far.visibility_range_end = FAR_RANGE
 	far.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
@@ -169,9 +184,20 @@ func _t(pos: Vector3, rot: Vector3 = Vector3.ZERO, scl: Vector3 = Vector3.ONE) -
 
 
 func _emit(batch: MeshFactory.Batch, parent: Node3D, mat: Material, shadows: bool) -> void:
+	_parts.append([batch, parent])
 	var mi := batch.to_instance(mat, parent)
 	if not shadows:
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+
+## Transformation eines Gelenks relativ zum Modell (funktioniert auch außerhalb des Baums).
+func _relative_to_self(n: Node3D) -> Transform3D:
+	var t := Transform3D.IDENTITY
+	var cur: Node = n
+	while cur != null and cur != self:
+		t = (cur as Node3D).transform * t
+		cur = cur.get_parent()
+	return t
 
 
 func _limb_pivot(parent: Node3D, pos: Vector3) -> Node3D:

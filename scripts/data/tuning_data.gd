@@ -63,9 +63,36 @@ const CARS := {
 		"style": "van",
 		"colors": [Color(0.95, 0.95, 0.95), Color(0.85, 0.85, 0.8), Color(0.25, 0.4, 0.6)],
 	},
+	"city_taxi": {
+		"name": "CityFlitzer Taxi",
+		"desc": "Taxi im Carsharing – heute fährst du selbst.",
+		"shared": true,
+		"stripe": Color(0.1, 0.1, 0.1),
+		"sign": Color(1.0, 0.95, 0.75),
+		"top_speed": 31.0, "accel": 8.5, "brake": 23.0, "reverse": 7.0, "drag": 2.8,
+		"grip": 6.4, "steer_rate": 1.9,
+		"size": Vector3(1.85, 1.45, 4.6),
+		"style": "sedan",
+		"colors": [Color(0.98, 0.78, 0.12)],
+	},
+	# Stadtbus: fährt im Verkehr mit, ist aber nicht für Spieler nutzbar
+	"city_bus": {
+		"name": "Stadtbus Linie 7",
+		"desc": "Der Bus durchs Hafenviertel.",
+		"shared": true,
+		"usable": false,
+		"stripe": Color(0.95, 0.95, 0.95),
+		"sign": Color(1.0, 0.6, 0.1),
+		"top_speed": 16.0, "accel": 4.5, "brake": 16.0, "reverse": 4.0, "drag": 3.0,
+		"grip": 6.0, "steer_rate": 1.5,
+		"size": Vector3(2.5, 3.1, 10.5),
+		"style": "bus",
+		"colors": [Color(0.12, 0.35, 0.7), Color(0.75, 0.15, 0.12)],
+	},
 }
 
-const SHARED_TYPES := ["city_hatch", "city_hatch", "city_sedan", "city_sedan", "city_van"]
+const SHARED_TYPES := ["city_hatch", "city_hatch", "city_sedan", "city_sedan", "city_van", "city_taxi", "city_hatch", "city_taxi"]
+const BUS_COUNT := 2
 
 const MAX_LEVEL := {"engine": 3, "tires": 3, "nitro": 2}
 const COSTS := {

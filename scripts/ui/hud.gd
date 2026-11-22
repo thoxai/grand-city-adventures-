@@ -464,7 +464,7 @@ func _build_start_menu() -> void:
 	_quality_btn = UiTheme.button("", _cycle_quality)
 	vb.add_child(_quality_btn)
 	_update_quality_text()
-	var foot := UiTheme.label("Steuerung: Joystick links · Kamera wischen · Knöpfe rechts  |  PC: WASD, Maus rechts, E, Leertaste, Shift, N, T, Esc", 14, UiTheme.TEXT_DIM)
+	var foot := UiTheme.label("Steuerung: Joystick links · Kamera wischen · Knöpfe rechts  |  PC: WASD, Maus rechts, E, Leertaste, Shift, N, H (Hupe), T, Esc", 14, UiTheme.TEXT_DIM)
 	foot.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vb.add_child(foot)
 
