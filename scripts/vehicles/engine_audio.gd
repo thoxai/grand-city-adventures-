@@ -17,6 +17,8 @@ func _ready() -> void:
 	gen.mix_rate = MIX_RATE
 	gen.buffer_length = 0.12
 	stream = gen
+	# Im Web ist "Sample"-Wiedergabe Standard; Generatoren brauchen Stream-Wiedergabe
+	playback_type = AudioServer.PLAYBACK_TYPE_STREAM
 	unit_size = 8.0
 	max_distance = 60.0
 	volume_db = -8.0

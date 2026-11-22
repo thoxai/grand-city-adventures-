@@ -32,7 +32,40 @@ const CARS := {
 		"style": "coupe",
 		"colors": [Color(0.8, 0.1, 0.08), Color(0.08, 0.08, 0.09), Color(0.9, 0.9, 0.92), Color(0.1, 0.55, 0.75), Color(0.55, 0.85, 0.2), Color(0.45, 0.2, 0.6)],
 	},
+	# --- CityFlitzer-Carsharing: fahren als Verkehr durch die Stadt, jederzeit nutzbar ---
+	"city_hatch": {
+		"name": "CityFlitzer Mini",
+		"desc": "Carsharing-Kleinwagen – einsteigen und losfahren.",
+		"shared": true,
+		"top_speed": 27.0, "accel": 8.0, "brake": 22.0, "reverse": 7.0, "drag": 3.0,
+		"grip": 6.5, "steer_rate": 2.0,
+		"size": Vector3(1.75, 1.5, 3.8),
+		"style": "hatch",
+		"colors": [Color(0.92, 0.92, 0.9), Color(0.75, 0.77, 0.8), Color(0.15, 0.22, 0.38), Color(0.55, 0.12, 0.12), Color(0.85, 0.75, 0.35)],
+	},
+	"city_sedan": {
+		"name": "CityFlitzer Komfort",
+		"desc": "Carsharing-Limousine – ruhig und bequem.",
+		"shared": true,
+		"top_speed": 32.0, "accel": 8.5, "brake": 23.0, "reverse": 7.0, "drag": 2.8,
+		"grip": 6.3, "steer_rate": 1.85,
+		"size": Vector3(1.85, 1.45, 4.6),
+		"style": "sedan",
+		"colors": [Color(0.1, 0.1, 0.11), Color(0.5, 0.52, 0.55), Color(0.9, 0.9, 0.88), Color(0.2, 0.3, 0.25), Color(0.35, 0.2, 0.15)],
+	},
+	"city_van": {
+		"name": "CityFlitzer Transporter",
+		"desc": "Carsharing-Transporter – viel Platz, wenig Tempo.",
+		"shared": true,
+		"top_speed": 24.0, "accel": 6.5, "brake": 20.0, "reverse": 6.0, "drag": 3.2,
+		"grip": 5.8, "steer_rate": 1.6,
+		"size": Vector3(2.0, 2.1, 5.0),
+		"style": "van",
+		"colors": [Color(0.95, 0.95, 0.95), Color(0.85, 0.85, 0.8), Color(0.25, 0.4, 0.6)],
+	},
 }
+
+const SHARED_TYPES := ["city_hatch", "city_hatch", "city_sedan", "city_sedan", "city_van"]
 
 const MAX_LEVEL := {"engine": 3, "tires": 3, "nitro": 2}
 const COSTS := {
@@ -74,6 +107,10 @@ static func upgrade_cost(category: String, current_level: int) -> int:
 	if current_level >= MAX_LEVEL[category]:
 		return -1
 	return COSTS[category][current_level]
+
+
+static func is_shared(car_id: String) -> bool:
+	return bool(base_spec(car_id).get("shared", false))
 
 
 static func paint_color(car_id: String, index: int) -> Color:

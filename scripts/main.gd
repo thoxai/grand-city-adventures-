@@ -21,6 +21,7 @@ var player: Player
 var cars: Dictionary = {}
 var npcs: Dictionary = {}
 var current_car: Car = null
+var traffic: TrafficManager
 var game_running := false
 var input_locked := false
 var collectible_nodes: Dictionary = {}
@@ -34,6 +35,12 @@ func _ready() -> void:
 	day_night.camera_provider = func(): return camera_rig.get_camera_position()
 	_spawn_player()
 	_spawn_cars()
+	traffic = TrafficManager.new()
+	traffic.name = "Traffic"
+	add_child(traffic)
+	traffic.setup(self)
+	for c in traffic.cars:
+		c.impact.connect(_on_car_impact)
 	_spawn_npcs()
 	_spawn_collectibles()
 	SaveSystem.world_snapshot_provider = world_snapshot
@@ -135,9 +142,11 @@ func start_new_game(char_id: String) -> void:
 	_reset_cars()
 	player.global_position = CityLayout.poi("home")
 	player.velocity = Vector3.ZERO
+	if traffic:
+		traffic.reset_all()
 	camera_rig.yaw = 0.0  # Blick zur Straße
 	_begin_play()
-	hud.toast("Willkommen im Alten Hafen, %s!" % GameState.character_name(), 4.0)
+	hud.toast("Willkommen im Alten Hafen, %s!\nTipp: Grüne CityFlitzer-Autos kannst du jederzeit fahren – daneben „Aktion“ drücken." % GameState.character_name(), 7.0)
 
 
 func continue_game() -> void:
@@ -180,7 +189,7 @@ func _process(delta: float) -> void:
 		var has_nitro: bool = current_car.stats["nitro_capacity"] > 0.0
 		hud.update_speed(TuningData.kmh(absf(current_car.speed)), current_car.nitro_charge / maxf(0.01, current_car.stats["nitro_capacity"]), has_nitro)
 		var near_tuning := _flat(current_car.global_position, CityLayout.poi("garage_tuning")) < TUNING_RANGE and absf(current_car.speed) < 3.0
-		hud.set_tuning_available(near_tuning and not locked)
+		hud.set_tuning_available(near_tuning and not locked and not current_car.shared)
 		if near_tuning and not locked and Input.is_action_just_pressed("tuning"):
 			open_tuning()
 		if current_car.global_position.y < -3.0:
@@ -206,18 +215,23 @@ func _update_interaction(locked: bool) -> void:
 				prompt = "Aktion: " + str(inter.get("prompt", "Untersuchen"))
 				_interact_action = open_puzzle.bind(inter)
 			else:
+				# Nächstgelegenes Ziel gewinnt (Person oder Auto)
 				var npc := _nearest_npc(pos)
+				var car := _nearest_car(pos)
+				if npc and car and _flat(pos, car.global_position) - 1.0 < _flat(pos, npc.global_position):
+					npc = null
 				if npc:
 					prompt = "Aktion: Sprechen mit %s" % npc.display_name()
 					_interact_action = talk_to.bind(npc)
-				else:
-					var car := _nearest_car(pos)
-					if car:
-						if GameState.is_car_unlocked(car.car_id):
-							prompt = "Aktion: Einsteigen (%s)" % car.display_name()
-							_interact_action = enter_car.bind(car)
-						else:
-							prompt = "%s – gehört noch Kenji" % car.display_name()
+				elif car:
+					if car.shared:
+						prompt = "Aktion: Einsteigen (%s · Carsharing)" % car.display_name()
+						_interact_action = enter_car.bind(car)
+					elif GameState.is_car_unlocked(car.car_id):
+						prompt = "Aktion: Einsteigen (%s)" % car.display_name()
+						_interact_action = enter_car.bind(car)
+					else:
+						prompt = "%s – gehört noch Kenji" % car.display_name()
 		if _interact_action.is_valid() and Input.is_action_just_pressed("interact"):
 			_interact_action.call()
 	hud.set_prompt(prompt)
@@ -239,7 +253,9 @@ func _nearest_npc(pos: Vector3) -> Npc:
 func _nearest_car(pos: Vector3) -> Car:
 	var best: Car = null
 	var best_d := CAR_ENTER_RANGE
-	for car in cars.values():
+	for car in get_cars():
+		if not car.visible or absf(car.speed) > 14.0:
+			continue
 		var d := _flat(pos, car.global_position)
 		if d < best_d:
 			best_d = d
@@ -306,6 +322,9 @@ func _on_puzzle_cancelled() -> void:
 func open_tuning() -> void:
 	if current_car == null:
 		return
+	if current_car.shared:
+		hud.toast("CityFlitzer-Carsharing kann nicht getunt werden – nutze ein eigenes Auto.")
+		return
 	input_locked = true
 	current_car.velocity = Vector3.ZERO
 	current_car.speed = 0.0
@@ -313,8 +332,10 @@ func open_tuning() -> void:
 
 
 func enter_car(car: Car) -> void:
-	if current_car or not GameState.is_car_unlocked(car.car_id):
+	if current_car or not car.is_usable():
 		return
+	if traffic and traffic.is_traffic_car(car):
+		traffic.take_over(car)
 	current_car = car
 	car.set_active(true)
 	player.visible = false
@@ -378,7 +399,10 @@ func _rescue_car(car: Car) -> void:
 
 
 func _on_car_impact(strength: float) -> void:
-	if strength > 10.0 and current_car:
+	if current_car == null:
+		return
+	camera_rig.add_shake(clampf(strength / 20.0, 0.1, 1.0))
+	if strength > 10.0:
 		hud.toast("Rums! Vorsichtig fahren.", 1.5)
 
 
@@ -426,8 +450,14 @@ func get_npc(id: String) -> Npc:
 	return npcs.get(id)
 
 
+## Alle Fahrzeuge: eigene Autos und sichtbarer Carsharing-Verkehr.
 func get_cars() -> Array:
-	return cars.values()
+	var out: Array = cars.values()
+	if traffic:
+		for c in traffic.cars:
+			if c.visible:
+				out.append(c)
+	return out
 
 
 func get_car_position(id: String) -> Variant:
@@ -486,6 +516,8 @@ func load_game() -> bool:
 # ------------------------------------------------------------------ Grafik
 
 func apply_quality() -> void:
+	if traffic:
+		traffic.set_density(TrafficManager.DENSITY.get(GameState.quality, 20))
 	var vp := get_viewport()
 	match GameState.quality:
 		"low":

@@ -9,13 +9,14 @@ ein verbreitetes Mittelklasse-Smartphone. Ziel: **mindestens 30 FPS** in der Qua
 
 | Größe | Budget | Gemessen* |
 |---|---|---|
-| Draw-Calls (inkl. Schatten und UI) | ≤ 150 | 73 – 137 |
-| Primitive (Dreiecke) | ≤ 200 000 | 117 000 – 133 000 |
+| Draw-Calls (inkl. Schatten und UI) | ≤ 180 (seit Straßenverkehr; vorher 150) | 83 – 168 |
+| Primitive (Dreiecke) | ≤ 200 000 | 120 000 – 142 000 |
 | Schattenwerfende Lichter | 1 (Sonne, 2 Kaskaden, 80 m) | 1 |
 | Dynamische Punktlichter | ≤ 8 | 6 (nur nachts) + 1 Scheinwerfer |
 | 3D-Auflösung | 85 % (Mittel) | – |
 
-\* Mit `tools/run_screenshots.sh` (Godot 4.5.1, Mobile-Renderer, 1280 × 720) in 10 Referenzszenen gemessen.
+\* Mit `tools/run_screenshots.sh` (Godot 4.5.1, Mobile-Renderer, 1280 × 720) in 13 Referenzszenen gemessen,
+mit 20 Verkehrsautos (Qualität „Mittel“).
 Die FPS-Werte dieser Messung sind **nicht aussagekräftig**, weil in der Entwicklungsumgebung nur ein
 Software-Renderer (lavapipe, CPU) verfügbar war. Eine Messung auf dem Referenzgerät steht noch aus.
 
@@ -25,6 +26,10 @@ Software-Renderer (lavapipe, CPU) verfügbar war. Eine Messung auf dem Referenzg
 - **MultiMesh**: alle 181 Gebäude (davon ~85 begehbare im Viertel, Rest Skyline) in einem Draw-Call (Fassaden-Shader mit Fenstern), dazu je ein Draw-Call für
   Requisiten, Baumstämme, Baumkronen, Laternenmasten und Leuchtenköpfe.
 - **Batching** von Figuren (11 Meshes je Figur, davon 5 ohne Schatten) und Autos (5 Oberflächen + 4 Räder).
+- **Verkehrsautos**: nah (< 28 m) 5 Oberflächen + 4 drehende Räder; fern nur 2 Oberflächen (Lack als
+  Vertex-Farbe, alle Leuchten in einem Shader), ohne Schatten, ab 170 m unsichtbar. Keine echten
+  Scheinwerfer-Lichter für den Verkehr (nur leuchtende Flächen); nur das eigene Auto hat ein SpotLight.
+  Verkehrsdichte je Qualitätsstufe: 12 / 20 / 28.
 - **LOD**: Figuren ab 35 m als einzelne Silhouette, ab 140 m unsichtbar; Kennzeichen ab 15 m ausgeblendet.
 - **Simulation nur in der Nähe**: NPCs weiter als 110 m von der Kamera werden nicht simuliert.
 - **Licht-Pool**: Statt 192 Laternenlichtern wandern 6 OmniLights alle 0,5 s zu den nächsten Laternen.

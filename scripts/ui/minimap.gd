@@ -70,6 +70,10 @@ func _draw() -> void:
 			if car == world.get("current_car"):
 				continue
 			var cp := _w2m(Vector2(car.global_position.x, car.global_position.z), center, s)
+			if car.shared:
+				# Carsharing: grün (frei nutzbar), fahrender Verkehr kleiner
+				draw_circle(cp, 2.5 if car.ai_driving else 4.0, Color(0.3, 0.95, 0.5, 0.9))
+				continue
 			var col := Color(0.35, 0.7, 1.0) if GameState.is_car_unlocked(car.car_id) else Color(0.6, 0.6, 0.65)
 			draw_rect(Rect2(cp - Vector2(4, 4), Vector2(8, 8)), col)
 	# Missionsziel

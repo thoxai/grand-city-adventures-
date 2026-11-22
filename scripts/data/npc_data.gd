@@ -115,7 +115,7 @@ const NPCS := {
 			{"from": 11.0, "type": "idle", "at": Vector3(-141, 0, 10.5)},
 		],
 		"lines": {
-			"morning": ["Na, schon wach? Ich hab gehört, Kenji braucht Hilfe."],
+			"morning": ["Na, schon wach? Ich hab gehört, Kenji braucht Hilfe.", "Der grüne CityFlitzer vor der Tür ist Carsharing – einfach einsteigen und losfahren!"],
 			"day": ["Tipp: Mit dem Nitro-Knopf kommst du bei Rennen viel schneller ans Ziel – wenn du ihn eingebaut hast."],
 			"evening": ["Speichern nicht vergessen! Pause-Menü oben rechts."],
 			"night": ["Ich geh gleich schlafen. Du solltest auch..."],

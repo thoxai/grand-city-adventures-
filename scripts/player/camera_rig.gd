@@ -18,6 +18,12 @@ var _manual_timer := 0.0
 var spring: SpringArm3D
 var camera: Camera3D
 var _cine_t := 0.0
+var _shake := 0.0
+
+
+## Kurzes Wackeln (z. B. bei einem Aufprall), 0..1
+func add_shake(amount: float) -> void:
+	_shake = clampf(maxf(_shake, amount), 0.0, 1.0)
 
 
 func _ready() -> void:
@@ -99,6 +105,13 @@ func _process(delta: float) -> void:
 	rotation = Vector3(0, yaw, 0)
 	spring.rotation = Vector3(pitch, 0, 0)
 	camera.rotation = Vector3.ZERO
+	if _shake > 0.0:
+		_shake = maxf(0.0, _shake - delta * 2.5)
+		camera.h_offset = randf_range(-1.0, 1.0) * _shake * 0.25
+		camera.v_offset = randf_range(-1.0, 1.0) * _shake * 0.2
+	else:
+		camera.h_offset = 0.0
+		camera.v_offset = 0.0
 	if in_vehicle:
 		var spd2: float = absf(target.get("speed")) if target.get("speed") != null else 0.0
 		camera.fov = lerpf(camera.fov, 68.0 + clampf(spd2 / 40.0, 0.0, 1.0) * 14.0, minf(1.0, delta * 3.0))

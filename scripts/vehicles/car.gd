@@ -27,6 +27,12 @@ var lateral_speed := 0.0
 var external_input: Dictionary = {}
 var use_external := false
 var headlights_on := false
+## Carsharing-Fahrzeug (Verkehr): immer nutzbar, nicht tunebar
+var shared := false
+## Verkehrs-KI steuert das Fahrzeug
+var ai_driving := false
+## Lackfarben-Index für Carsharing-Fahrzeuge (vor add_child setzen)
+var color_index := 0
 var _steer := 0.0
 
 
@@ -46,14 +52,20 @@ func _ready() -> void:
 	model = CarModel.new()
 	model.name = "Model"
 	add_child(model)
-	var t := GameState.get_tuning(car_id)
-	model.build(spec, TuningData.paint_color(car_id, int(t.get("color", 0))), "GC %s" % ("K2 07" if car_id == "car_compact" else "RS 42"))
+	shared = TuningData.is_shared(car_id)
+	var t := {} if shared else GameState.get_tuning(car_id)
+	var col := TuningData.paint_color(car_id, color_index if shared else int(t.get("color", 0)))
+	model.build(spec, col, "GC %s" % ("K2 07" if car_id == "car_compact" else "RS 42"), shared)
 	engine_audio = EngineAudio.new()
 	add_child(engine_audio)
 	apply_tuning()
 
 
 func apply_tuning() -> void:
+	if TuningData.is_shared(car_id):
+		stats = TuningData.compute_stats(car_id, {})
+		nitro_charge = 0.0
+		return
 	var t := GameState.get_tuning(car_id)
 	stats = TuningData.compute_stats(car_id, t)
 	nitro_charge = stats["nitro_capacity"]
@@ -68,6 +80,20 @@ func set_active(v: bool) -> void:
 			engine_audio.start()
 		else:
 			engine_audio.stop_engine()
+
+
+## Übergibt das Fahrzeug an die Verkehrs-KI bzw. nimmt es ihr ab.
+## KI-Autos kollidieren nicht untereinander (sie weichen per Abstandsregel aus).
+func set_ai(v: bool) -> void:
+	ai_driving = v
+	use_external = v
+	collision_mask = (1 | 2) if v else (1 | 2 | 4)
+	if not v:
+		external_input = {}
+
+
+func is_usable() -> bool:
+	return shared or GameState.is_car_unlocked(car_id)
 
 
 func display_name() -> String:
@@ -175,7 +201,7 @@ func simulate(delta: float, throttle: float, steer: float, handbrake: bool, nitr
 
 	if model:
 		model.update_visuals(speed, _steer, delta)
-		model.set_lights(headlights_on, braking)
+		model.set_lights(headlights_on, braking, active)
 	if engine_audio:
 		engine_audio.rpm = clampf(absf(speed) / top, 0.0, 1.0)
 		engine_audio.throttle_load = absf(throttle)

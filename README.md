@@ -10,6 +10,8 @@ Fahrzeug-Tuning und Erkundung.
 | ![Menü](docs/screenshots/01_hauptmenue.png) | ![Fahrt](docs/screenshots/04_fahrt_abend.png) | ![Nacht](docs/screenshots/05_nacht_stadt.png) |
 | **Start mit Missionsgeberin** | **Sicherungs-Rätsel** | **Tuning** |
 | ![Start](docs/screenshots/02_start_alex_tag.png) | ![Rätsel](docs/screenshots/06_raetsel_sicherungen.png) | ![Tuning](docs/screenshots/08_tuning.png) |
+| **Straßenverkehr** | **Im CityFlitzer unterwegs** | **Verkehr bei Nacht** |
+| ![Verkehr](docs/screenshots/11_verkehr_kreuzung.png) | ![Flitzer](docs/screenshots/12_flitzer_im_verkehr.png) | ![Nacht](docs/screenshots/13_verkehr_nacht.png) |
 
 Die Screenshots werden automatisch mit `tools/run_screenshots.sh` gerendert.
 
@@ -22,13 +24,26 @@ Die Screenshots werden automatisch mit `tools/run_screenshots.sh` gerendert.
 | 1 | Stadtviertel ca. 400 × 400 m | „Alter Hafen“: 4 × 4 Blöcke im 90-m-Straßenraster, Wohnviertel, City-Ring, Park, Rathausplatz, Werkstatt, Gewerbehof mit Funkturm, Hafen; Skyline und Wasser als Kulisse |
 | 2 | Zwei spielbare Figuren | **Alex** (Technik-Tüftler) und **Mia** (Kartsport-Talent); die jeweils andere Figur erscheint als NPC in der Story; Wechsel im Pause-Menü |
 | 3 | Third-Person-Kamera + Touch | SpringArm-Kamera (weicht Wänden aus), Multi-Touch: dynamischer Joystick, Wisch-Kamera, runde Aktionsknöpfe; zusätzlich Tastatur/Maus/Gamepad |
-| 4 | Zwei Autos, Arcade-Physik | **Lumen K2** (Kompakt) und **Vireo RS** (Sportcoupé); Längs-/Quergrip-Modell mit Driften, Handbremse, Nitro |
+| 4 | Zwei Autos, Arcade-Physik | **Lumen K2** (Kompakt) und **Vireo RS** (Sportcoupé); Längs-/Quergrip-Modell mit Driften, Handbremse, Nitro. Dazu **Straßenverkehr** mit 20 CityFlitzer-Carsharing-Autos (Kleinwagen, Limousine, Transporter), die man jederzeit übernehmen kann |
 | 5 | Ein-/Aussteigen, Tuning | Aktion-Knopf; Werkstatt: Motor (3 Stufen), Reifen & Fahrwerk (3), Nitro (2), Lackierung (6 Farben) |
 | 6 | Fünf Missionen mit Story | Neu im Viertel · Die Hafenrunde (Rennen) · Kurzschluss (Rätsel) · Ersatzteile im Eiltempo (Zeit-Lieferung) · Das Störsignal (Frequenz-Rätsel + Zeitdruck-Finale) |
 | 7 | NPCs mit Dialogen und Tagesabläufen | 12 NPCs, Dialoge je Tageszeit, Rundgänge, nachts zu Hause; weichen fahrenden Autos aus |
 | 8 | Minikarte, Ziele, Fortschritt, Belohnungen | Spielerzentrierte Minikarte mit Zielpfeil, Missionsziel-Panel, Timer, Checkpoints, Geld, Abschluss-Panel, 12 Energiezellen zum Sammeln |
 | 9 | Tag-Nacht-Wechsel | 24-Minuten-Tag, Sonnen-/Mondlicht, prozeduraler Himmel, Dämmerung, leuchtende Fenster, Straßenlaternen, Scheinwerfer |
 | 10 | Lokales Speichern/Laden | JSON unter `user://savegame.json`, Autosave nach jeder Mission, Weiterspielen im Hauptmenü |
+
+## Straßenverkehr & Carsharing
+
+- **20 Autos** (Qualität Niedrig/Mittel/Hoch: 12/20/28) fahren auf der rechten Spur durch das Straßenraster,
+  biegen an Kreuzungen zufällig ab und bremsen vor Hindernissen – auch vor dir, wenn du auf der Straße stehst.
+  Es gibt keine Unfälle mit Fußgängern.
+- Die Verkehrsautos sind **CityFlitzer-Carsharing-Wagen** (grüner Streifen, Dachschild). Du kannst in **jeden**
+  einsteigen, ohne Freischaltung: daneben stellen und **Aktion** drücken. Ein fahrender Wagen hält dafür sofort an.
+- Ein CityFlitzer **parkt direkt vor eurer Haustür** – du kannst also gleich nach dem Start losfahren.
+  Zwei weitere parken am Rathausplatz und an der Werkstatt.
+- Zurückgelassene CityFlitzer kehren in den Verkehr zurück, sobald du weit genug weg bist.
+- Carsharing-Autos kann man nicht tunen; dafür gibt es die eigenen Autos aus der Story (Lumen K2, Vireo RS).
+- Auf der Minikarte erscheinen CityFlitzer als grüne Punkte. Bei einem Aufprall wackelt die Kamera.
 
 ## Schnellstart
 
@@ -57,7 +72,7 @@ godot --path .
 
 ## Tests
 
-74 automatisierte Tests (Unit + Integration), ohne externe Abhängigkeiten:
+80 automatisierte Tests (Unit + Integration), ohne externe Abhängigkeiten:
 
 ```bash
 GODOT=/pfad/zu/godot tools/run_tests.sh
@@ -72,7 +87,9 @@ Abgedeckt sind u. a.:
 - **Fahrphysik** (echte Physik-Engine): Beschleunigen, Höchstgeschwindigkeit, Bremsen, Rückwärts, Lenken, Driften, Wandaufprall, Motor-Upgrade, Nitro.
 - **Missionen**: Schritt-für-Schritt-Logik, Zeitlimit mit Wiederholung, komplette Story mit Belohnungssumme.
 - **Hauptszene**: Menü, Figurwahl, Laufen, Touch-Joystick und Multi-Touch-Knöpfe, Dialoge, Ein-/Aussteigen, **kompletter Story-Durchlauf** inkl. Rätsel-UI, Tuning-Kauf, Sammeln, Speichern/Laden der Welt, Pause, NPC-Tagesablauf, Ausweichen.
-- **KI-Fahrer**: Ein Autopilot fährt „Die Hafenrunde“ mit echter Physik durch die generierte Stadt – Ergebnis 42 s bei 80 s Zeitlimit.
+- **KI-Fahrer**: Ein Autopilot fährt „Die Hafenrunde“ mit echter Physik durch die generierte Stadt – trotz Verkehr ca. 43 s bei 80 s Zeitlimit.
+- **Straßenverkehr**: 60 s Simulation mit 20 Autos – Ø über 600 m pro Auto, 100 % auf der Straße, kein Auto bleibt hängen;
+  Anhalten vor Fußgängern; Einsteigen in den geparkten CityFlitzer am Start; Übernahme fahrender Autos und Rückkehr in den Verkehr.
 
 Screenshots und Draw-Call-Messung (benötigt Vulkan; in CI/Containern per lavapipe):
 
@@ -148,7 +165,9 @@ Paketname `org.example.grandcityadventures` ist ein Platzhalter und muss vor ein
   es wurde kein APK gebaut. Das 30-FPS-Ziel ist über ein Budget (Draw-Calls, Primitive, Lichter) abgesichert und
   mit Software-Rendering vermessen, nicht mit echter Mobil-GPU (siehe [PERFORMANCE.md](docs/PERFORMANCE.md)).
 - **Touch-Steuerung** ist per simulierter Multi-Touch-Events getestet, nicht mit echten Fingern.
-- **Kein Straßenverkehr**: Es fahren keine KI-Autos; NPCs laufen feste Wege (keine NavMesh-Navigation).
+- **Verkehr ohne Ampeln**: KI-Autos fahren mit Abstandsregel; an Kreuzungen können sie sich kurz gegenseitig
+  durchlassen bzw. sich bei längerem Patt ineinander schieben (sie kollidieren untereinander bewusst nicht).
+  NPCs laufen feste Wege (keine NavMesh-Navigation).
 - **Audio**: nur ein prozedural erzeugter Motorsound; keine Musik, keine Soundeffekte.
 - **Speichern mitten in einer Mission** sichert nur Fortschritt außerhalb der Mission; nach dem Laden startet die
   laufende Mission erneut beim Auftraggeber (freigeschaltete Autos bleiben erhalten).

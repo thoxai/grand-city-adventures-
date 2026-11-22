@@ -70,6 +70,24 @@ func _ready() -> void:
 	GameState.time_of_day = 7.2
 	await _wait(1.2)
 	await _shot("10_park_morgen")
+	# Straßenverkehr an einer Kreuzung
+	GameState.time_of_day = 11.0
+	main.player.global_position = Vector3(10, 0, 12)
+	main.camera_rig.yaw = PI * 0.25
+	main.camera_rig.pitch = deg_to_rad(-18.0)
+	await _wait(4.0)
+	await _shot("11_verkehr_kreuzung")
+	# Mit einem CityFlitzer im Verkehr mitfahren
+	var flitzer: Car = main.traffic.driving_cars()[0]
+	main.enter_car(flitzer)
+	flitzer.use_external = true
+	flitzer.reset_to(TrafficManager.lane_point(Vector2i(1, 2), Vector2i(1, 0), 20.0), TrafficManager.yaw_for(Vector2i(1, 0)))
+	flitzer.external_input = {"throttle": 0.6, "steer": 0.0}
+	await _wait(3.0)
+	await _shot("12_flitzer_im_verkehr")
+	GameState.time_of_day = 21.5
+	await _wait(2.0)
+	await _shot("13_verkehr_nacht")
 	get_tree().quit()
 
 
