@@ -105,6 +105,29 @@ docs/                    Architektur, Sprints, Performance, Assets & Lizenzen, S
 Details: [docs/ARCHITEKTUR.md](docs/ARCHITEKTUR.md) · [docs/SPRINTS.md](docs/SPRINTS.md) ·
 [docs/PERFORMANCE.md](docs/PERFORMANCE.md) · [docs/ASSETS_UND_LIZENZEN.md](docs/ASSETS_UND_LIZENZEN.md)
 
+## Web-Version (für den eigenen Webserver)
+
+Fertiges Paket bauen (Godot 4.5.1 + Web-Export-Vorlagen nötig):
+
+```bash
+GODOT=/pfad/zu/godot tools/export_web.sh
+```
+
+Ergebnis: `export/grand-city-adventures-web.zip` (ca. 9,5 MB gepackt, 38 MB entpackt).
+
+**Hochladen:** ZIP entpacken und **alle Dateien** (inkl. `.htaccess`) in einen Ordner auf dem Webserver laden,
+z. B. `https://deine-domain.de/spiel/`. Aufruf über `index.html`.
+
+- Der Build ist *single-threaded*: Es sind **keine** speziellen Header (COOP/COEP) nötig, normales Webhosting reicht.
+- **HTTPS** wird empfohlen (manche Browser blockieren Audio/Speicher sonst).
+- Der Server muss `.wasm` als `application/wasm` ausliefern. Für Apache erledigt das die mitgelieferte `.htaccess`;
+  bei nginx ggf. `types { application/wasm wasm; }` ergänzen.
+- Lokales Öffnen per Doppelklick auf `index.html` funktioniert **nicht** – es braucht einen Webserver
+  (Test: `python3 -m http.server` im Ordner).
+- Im Browser nutzt Godot den Compatibility-Renderer (WebGL 2). Spielstände liegen im Browser-Speicher
+  (IndexedDB) des jeweiligen Geräts.
+- Erster Start lädt ca. 9,5 MB (mit Kompression) und braucht je nach Gerät einige Sekunden.
+
 ## Android-Build
 
 1. In Godot: *Editor → Export-Vorlagen verwalten* → Vorlagen für 4.5 installieren.
@@ -129,7 +152,7 @@ Paketname `org.example.grandcityadventures` ist ein Platzhalter und muss vor ein
 - **Audio**: nur ein prozedural erzeugter Motorsound; keine Musik, keine Soundeffekte.
 - **Speichern mitten in einer Mission** sichert nur Fortschritt außerhalb der Mission; nach dem Laden startet die
   laufende Mission erneut beim Auftraggeber (freigeschaltete Autos bleiben erhalten).
-- **Web und iOS** sind vorbereitet (Web-Exportvorlage, Mobile-Renderer), aber nicht gebaut oder getestet.
+- **Web** ist gebaut und in Chromium (Software-WebGL) getestet: Menü, Spielstart und Laufen funktionieren. Auf echten Handy-Browsern noch nicht getestet. **iOS** ist vorbereitet, aber nicht gebaut.
 - **Godot-Version**: Entwickelt mit 4.5.1. Die komplette Test-Suite läuft auch mit 4.3 grün, dort werden
   2D-Zeichenbefehle aber noch nicht gebündelt (UI kostet ~2,5× mehr Draw-Calls). Empfohlen: 4.4 oder neuer.
 

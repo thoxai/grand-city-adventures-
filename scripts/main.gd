@@ -135,7 +135,7 @@ func start_new_game(char_id: String) -> void:
 	_reset_cars()
 	player.global_position = CityLayout.poi("home")
 	player.velocity = Vector3.ZERO
-	camera_rig.yaw = PI
+	camera_rig.yaw = 0.0  # Blick zur Straße
 	_begin_play()
 	hud.toast("Willkommen im Alten Hafen, %s!" % GameState.character_name(), 4.0)
 
